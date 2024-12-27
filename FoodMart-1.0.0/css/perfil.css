@@ -1,0 +1,143 @@
+/* Estilos Generales */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
+}
+
+/* Header */
+.header {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+/* Contenedor Principal */
+.profile-container {
+    max-width: 600px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Títulos */
+h1, h2 {
+    text-align: center;
+}
+
+/* Foto de Perfil */
+.profile-photo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.photo-container {
+    position: relative;
+    display: inline-block;
+}
+
+.photo-container img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.photo-container button {
+    display: block;
+    margin: 0 auto;
+    padding: 8px 12px;
+    background-color: #ffcc00;
+    color: rgb(0, 0, 0);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.photo-container button:hover {
+    background-color: #e6b800;
+}
+
+/* Información del Usuario */
+.user-info, .preferences {
+    margin-bottom: 20px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.info-item label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.info-item input, .info-item select {
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.info-item input[type="checkbox"] {
+    width: auto;
+}
+
+/* Botón Guardar Cambios */
+.save-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #3fa9ff;
+    color: rgb(0, 0, 0);
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.save-button:hover {
+    background-color: #3fa9ff;
+}
+
+/* Botones Personalizados */
+.btn-yellow {
+    background-color: #ffc107;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-yellow:hover {
+    background-color: #e0a800;
+}
+
+/* Botones Amarillo Diferente */
+.btn-yellow-alt {
+    background-color: #ffd966;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-yellow-alt:hover {
+    background-color: #e6c84d;
+}
