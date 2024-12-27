@@ -52,44 +52,35 @@
 <body>
     <!-- Header -->
 <!-- Navbar -->
-<header class="bg-light border-bottom">
+<header>
     <div class="container-fluid">
-        <div class="row align-items-center py-3">
-            <!-- Logo -->
+        <div class="row py-3 border-bottom">
             <div class="col-sm-4 col-lg-3 text-center text-sm-start">
-                <a href="index.html">
-                    <img src="images/logo.png" alt="ESCOMDeals" class="img-fluid" style="max-height: 50px;">
-                </a>
+                <div class="main-logo">
+                    <a href="index.html">
+                        <img src="images/logo.png" alt="ESCOMDeals" class="img-fluid">
+                    </a>
+                </div>
             </div>
-
-            <!-- Navigation Links -->
-            <div class="col-lg-6 d-none d-lg-flex justify-content-center">
-                <nav>
-                    <ul class="nav justify-content-center">
-                        <li class="nav-item">
-                            <a href="index.html" class="nav-link text-dark">Inicio</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="alimentos.html" class="nav-link text-dark">Alimentos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="tecnologia.html" class="nav-link text-dark">Tecnología</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="libros.html" class="nav-link text-dark">Libros</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="contacto.html" class="nav-link text-dark">Contacto</a>
-                        </li>
-                    </ul>
-                </nav>
+            
+            <!-- Search bar -->
+            <div class="col-sm-6 col-lg-5 d-none d-lg-block">
+                <div class="search-bar bg-light p-2 my-2 rounded-4">
+                    <form id="search-form" action="index.html" method="post">
+                        <input type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
+                    </form>
+                </div>
             </div>
-
-            <!-- User Options -->
-            <div class="col-sm-8 col-lg-3 d-flex justify-content-end gap-3 align-items-center">
-                <a href="perfil.html" class="btn btn-outline-primary btn-sm">Perfil</a>
-                <a href="carrito.html" class="btn btn-outline-primary btn-sm">Carrito</a>
-                <a href="login.html" class="btn btn-primary btn-sm">Ingresar</a>
+            
+            <!-- User options -->
+            <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
+                <ul class="d-flex list-unstyled m-0">
+                    <li><a href="index.html" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
+                    <li><a href="perfil.html" class="rounded-circle bg-light p-2 mx-1">Perfil</a></li>
+                    <li><a href="wishlist.html" class="rounded-circle bg-light p-2 mx-1">Favoritos</a></li>
+                    <li><a href="carrito.html" class="rounded-circle bg-light p-2 mx-1">Carrito</a></li>
+                    <li><a href="login.html" class="rounded-circle bg-light p-2 mx-1">Ingresar</a></li>
+                </ul>
             </div>
         </div>
     </div>
