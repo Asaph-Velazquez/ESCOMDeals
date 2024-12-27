@@ -1,6 +1,6 @@
--- Tabla principal de usuarios
+-- Crear tabla principal de usuarios
 CREATE TABLE usuario (
-    id_usuario SERIAL PRIMARY KEY,
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(80) NOT NULL,
     apellido_paterno VARCHAR(80) NOT NULL,
     apellido_materno VARCHAR(80),
@@ -10,82 +10,82 @@ CREATE TABLE usuario (
     fecha_registro DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
--- Tabla específica para vendedores
+-- Crear tabla específica para vendedores
 CREATE TABLE vendedor (
-    id_vendedor SERIAL PRIMARY KEY,
+    id_vendedor INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL UNIQUE,
     informacion_contacto TEXT,
-    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabla específica para compradores
+-- Crear tabla específica para compradores
 CREATE TABLE comprador (
-    id_comprador SERIAL PRIMARY KEY,
+    id_comprador INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL UNIQUE,
     direccion_envio TEXT,
-    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabla de productos (asociada con vendedores)
+-- Crear tabla de productos (asociada con vendedores)
 CREATE TABLE producto (
-    id_producto SERIAL PRIMARY KEY,
+    id_producto INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     descripcion VARCHAR(500) NOT NULL,
     precio DECIMAL(10, 2) NOT NULL,
     stock INT NOT NULL CHECK (stock >= 0),
     categoria VARCHAR(50),
     id_vendedor INT NOT NULL,
-    FOREIGN KEY (id_vendedor) REFERENCES vendedor(id_vendedor)
+    FOREIGN KEY (id_vendedor) REFERENCES vendedor(id_vendedor) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabla de pedidos (relacionando compradores y vendedores)
+-- Crear tabla de pedidos (relacionando compradores y vendedores)
 CREATE TABLE pedido (
-    id_pedido SERIAL PRIMARY KEY,
+    id_pedido INT AUTO_INCREMENT PRIMARY KEY,
     fecha DATE NOT NULL,
     total DECIMAL(10, 2) NOT NULL,
     id_comprador INT NOT NULL,
     id_vendedor INT NOT NULL,
-    FOREIGN KEY (id_comprador) REFERENCES comprador(id_comprador),
-    FOREIGN KEY (id_vendedor) REFERENCES vendedor(id_vendedor)
+    FOREIGN KEY (id_comprador) REFERENCES comprador(id_comprador) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_vendedor) REFERENCES vendedor(id_vendedor) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabla para reseñas (relacionando compradores y productos)
+-- Crear tabla para reseñas (relacionando compradores y productos)
 CREATE TABLE resena (
-    id_resena SERIAL PRIMARY KEY,
+    id_resena INT AUTO_INCREMENT PRIMARY KEY,
     calificacion INT NOT NULL CHECK (calificacion BETWEEN 1 AND 5),
     comentario VARCHAR(500),
     fecha DATE NOT NULL,
     id_comprador INT NOT NULL,
     id_producto INT NOT NULL,
-    FOREIGN KEY (id_comprador) REFERENCES comprador(id_comprador),
-    FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
+    FOREIGN KEY (id_comprador) REFERENCES comprador(id_comprador) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabla de métodos de pago (asociada con compradores)
+-- Crear tabla de métodos de pago (asociada con compradores)
 CREATE TABLE metodo_pago (
-    id_metodo_pago SERIAL PRIMARY KEY,
+    id_metodo_pago INT AUTO_INCREMENT PRIMARY KEY,
     tipo_pago VARCHAR(50) NOT NULL,
     id_comprador INT NOT NULL,
-    FOREIGN KEY (id_comprador) REFERENCES comprador(id_comprador)
+    FOREIGN KEY (id_comprador) REFERENCES comprador(id_comprador) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabla de detalle de pedidos (relacionando pedidos y productos)
+-- Crear tabla de detalle de pedidos (relacionando pedidos y productos)
 CREATE TABLE detalle_pedido (
-    id_detalle SERIAL PRIMARY KEY,
+    id_detalle INT AUTO_INCREMENT PRIMARY KEY,
     cantidad INT NOT NULL CHECK (cantidad > 0),
     id_pedido INT NOT NULL,
     id_producto INT NOT NULL,
-    FOREIGN KEY (id_pedido) REFERENCES pedido(id_pedido),
-    FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
+    FOREIGN KEY (id_pedido) REFERENCES pedido(id_pedido) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabla de notificaciones (relacionando usuarios y productos)
+-- Crear tabla de notificaciones (relacionando usuarios y productos)
 CREATE TABLE notificacion (
-    id_notificacion SERIAL PRIMARY KEY,
+    id_notificacion INT AUTO_INCREMENT PRIMARY KEY,
     mensaje VARCHAR(500) NOT NULL,
     fecha DATE NOT NULL,
     id_usuario INT NOT NULL,
     id_producto INT NOT NULL,
-    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
-    FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON DELETE CASCADE ON UPDATE CASCADE
 );
