@@ -1,0 +1,30 @@
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    /* Añadir padding-top para compensar el header fijo */
+    padding-top: 120px; /* Ajusta este valor según la altura de tu header */
+}
+
+/* Envolver las secciones principales en un div con clase main-content */
+.main-content {
+    flex: 1 0 auto;
+    width: 100%;
+}
+
+footer {
+    flex-shrink: 0;
+    background-color: #333;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    width: 100%;
+    margin-top: auto; /* Esto ayudará a empujar el footer hacia abajo */
+}
