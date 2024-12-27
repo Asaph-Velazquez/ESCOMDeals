@@ -1,0 +1,103 @@
+/* Contenedor principal */
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Imagen y vista previa */
+#productImage {
+    margin-bottom: 15px;
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Precios */
+input[type="number"] {
+    width: 80px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Botón guardar */
+.btn-outline-dark {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Estilo para los días y horarios */
+/* Ajustar espaciado entre días y horas */
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.form-check-label {
+    margin-left: 0px;
+    font-size: 16px;
+}
+
+input[disabled] {
+    background-color: #0080ff;
+    cursor: not-allowed;
+}
+
+
+input[disabled] {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+/* Botones personalizados */
+.btn-yellow {
+    background-color: #ffc107;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-yellow:hover {
+    background-color: #e0a800;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+
+/* Ajustar espaciado entre botones */
+.d-flex.gap-2 {
+    margin-left: 0; /* Asegura que los botones comiencen desde la izquierda */
+}
+
+
+
+
+
