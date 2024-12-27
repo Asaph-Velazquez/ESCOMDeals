@@ -1,0 +1,45 @@
+/* Historial de compras */
+h1 {
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+}
+
+.table {
+    margin: 0 auto;
+    max-width: 1000px;
+    background-color: #fff;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f8f9fa;
+}
+
+.table-dark {
+    background-color: #343a40;
+    color: #fff;
+}
+
+.table-dark th {
+    text-align: center;
+}
+
+.table th, .table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background-color: #e9ecef;
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Imagen en la tabla */
+.table img {
+    max-width: 60px;
+    height: auto;
+    border-radius: 5px;
+}

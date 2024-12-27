@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Historial de compras - ESCOMDeals</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Panel de ventas del usuario en ESCOMDeals.">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/historial_compras.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="./css/footer.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="fixed-top bg-light">
+        <div class="container-fluid">
+            <div class="row py-3 border-bottom">
+                <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+                    <div class="main-logo">
+                        <a href="index.html">
+                            <img src="images/logo.png" alt="ESCOMDeals" class="img-fluid">
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Search bar -->
+                <div class="col-sm-6 col-lg-5 d-none d-lg-block">
+                    <div class="search-bar bg-light p-2 my-2 rounded-4">
+                        <form id="search-form" action="index.html" method="post">
+                            <input type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
+                        </form>
+                    </div>
+                </div>
+
+                <!-- User options -->
+                <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
+                    <ul class="d-flex list-unstyled m-0">
+                        <li><a href="index.html" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
+                        <li><a href="perfil.html" class="rounded-circle bg-light p-2 mx-1">Perfil</a></li>
+                        <li><a href="wishlist.html" class="rounded-circle bg-light p-2 mx-1">Favoritos</a></li>
+                        <li><a href="carrito.html" class="rounded-circle bg-light p-2 mx-1">Carrito</a></li>
+                        <li><a href="login.html" class="rounded-circle bg-light p-2 mx-1">Ingresar</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+ 
+    <main class="container my-5">
+        <h1 class="mb-4">Historial de Compras</h1>
+        <table class="table table-striped shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Imagen</th>
+                    <th scope="col">Producto</th>
+                    <th scope="col">Vendedor</th>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Precio</th>
+                    <th scope="col">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">1</th>
+                    <td><img src="images/las_chidas/gomita.jpg" alt="Audífonos" class="img-thumbnail"></td>
+                    <td>Audífonos Inalámbricos</td>
+                    <td>TechStore</td>
+                    <td>25/12/2024</td>
+                    <td>$599.00</td>
+                    <td>Entregado</td>
+                </tr>
+                <tr>
+                    <th scope="row">2</th>
+                    <td><img src="images/las_chidas/teclado.jpg" alt="Teclado" class="img-thumbnail"></td>
+                    <td>Teclado Mecánico</td>
+                    <td>GamerWorld</td>
+                    <td>20/12/2024</td>
+                    <td>$1,299.00</td>
+                    <td>En Proceso</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    
+    
+
+    <!-- Footer -->
+    <footer>
+        <div class="container-fluid">
+            <p>&copy; 2024 ESCOMDeals - Todos los derechos reservados.</p>
+            <a href="terminos.html" class="text-white">Términos y Condiciones</a> |
+            <a href="privacidad.html" class="text-white">Política de Privacidad</a>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
