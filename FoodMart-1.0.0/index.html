@@ -16,6 +16,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../FoodMart-1.0.0/css/footer.css">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const myCarousel = document.getElementById('CaruselDestacados');
+            const carousel = new bootstrap.Carousel(myCarousel, {
+                interval: 2000,
+                ride: 'carousel',
+                wrap: true
+            });
+        });
+    </script>
 </head>
 <body>
 
@@ -56,11 +67,11 @@
 
     <!-- Banner Section -->
     <section class="py-3" style="background-image: url('images/background-pattern.jpg'); background-size: cover;">
-        <div id="carouselExampleCaptions" class="carousel slide">
+        <div id="CaruselDestacados" class="carousel slide">
             <div class="carousel-indicators">
-              <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-              <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1" aria-label="Slide 2"></button>
-              <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2" aria-label="Slide 3"></button>
+              <button type="button" data-bs-target="#CaruselDestacados" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+              <button type="button" data-bs-target="#CaruselDestacados" data-bs-slide-to="1" aria-label="Slide 2"></button>
+              <button type="button" data-bs-target="#CaruselDestacados" data-bs-slide-to="2" aria-label="Slide 3"></button>
             </div>
             <div class="carousel-inner">
               <div class="carousel-item active">
@@ -94,11 +105,11 @@
                 </div>
               </div>
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+            <button class="carousel-control-prev" type="button" data-bs-target="#CaruselDestacados" data-bs-slide="prev">
               <span class="carousel-control-prev-icon" aria-hidden="true"></span>
               <span class="visually-hidden">Previous</span>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+            <button class="carousel-control-next" type="button" data-bs-target="#CaruselDestacados" data-bs-slide="next">
               <span class="carousel-control-next-icon" aria-hidden="true"></span>
               <span class="visually-hidden">Next</span>
             </button>
