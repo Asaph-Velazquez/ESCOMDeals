@@ -23,17 +23,20 @@ body {
     background-color: #e0a800;
 }
 
-/* Card de producto */
+/* Ajuste de la tarjeta del producto */
 .product-card {
     max-width: 1500px;
-    margin: 0 auto; /* Cambiar esto */
-    margin-left: 0; /* Alinear hacia la izquierda */
+    margin: 0 auto;
     border: 1px solid #ddd;
     border-radius: 5px;
     background-color: #fff;
     height: auto;
+    display: flex; /* Flexbox layout */
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
 }
-
 
 /* Imagen del producto */
 .product-image img {
@@ -43,6 +46,22 @@ body {
     border: 1px solid #ddd;
     border-radius: 5px;
 }
+
+/* Ajuste del espacio de las columnas */
+.col-md-8 {
+    flex: 3; /* La columna de la descripción ocupa 3 partes */
+    padding-right: 20px; /* Espaciado entre descripción y botones */
+}
+
+.col-md-4 {
+    flex: 1; /* La columna de botones ocupa 1 parte */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Alinea los botones a la derecha */
+    gap: 10px; /* Espaciado vertical entre botones */
+}
+
+
 
 /* Descripción del producto */
 .product-description {
@@ -55,18 +74,95 @@ body {
     color: #555;
 }
 
+/* Contenedor de los botones en el lado derecho */
+.button-container {
+    display: flex;
+    flex-direction: column; /* Botones en columna */
+    align-items: flex-start; /* Alinear botones hacia la izquierda */
+    gap: 10px; /* Espaciado entre botones */
+    margin-right: 0; /* Quita margen innecesario */
+}
+
+
+
+/* Botones */
+.btn-edit, .btn-delete, .btn-availability {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 120px; /* Ancho fijo para uniformidad */
+}
+
+/* Botón Editar */
+.btn-edit {
+    background-color: #ffff00;
+    color: #000;
+}
+.btn-edit:hover {
+    background-color: #e0e000;
+}
+
+/* Botón Eliminar */
+.btn-delete {
+    background-color: #ff0000;
+    color: #fff;
+}
+.btn-delete:hover {
+    background-color: #cc0000;
+}
+
+/* Botón Disponible */
+.btn-availability {
+    background-color: #28a745;
+    color: #fff;
+    transition: background-color 0.3s ease;
+}
+.btn-availability.unavailable {
+    background-color: #ff0000;
+    color: #fff;
+}
+.btn-availability:hover {
+    background-color: #218838;
+}
+.btn-availability.unavailable:hover {
+    background-color: #cc0000;
+}
+/* Iconos en botones */
+.icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px; /* Espaciado entre ícono y texto */
+}
+
 /* Responsividad */
 @media (max-width: 768px) {
     .product-card {
-        margin: 20px auto;
+        flex-direction: column; /* Cambiar a diseño vertical en pantallas pequeñas */
+        align-items: center; /* Centrar contenido en diseño vertical */
+        padding: 20px;
     }
 
     .product-image img {
         max-width: 120px;
     }
 
+    .button-container {
+        margin-right: 0; /* Eliminar margen en pantallas pequeñas */
+        align-items: center; /* Centrar botones en pantallas pequeñas */
+    }
+
     .btn-yellow {
         font-size: 16px;
         padding: 8px 16px;
+    }
+
+    .btn-edit, .btn-delete, .btn-availability {
+        width: 100%; /* Los botones ocupan todo el ancho en pantallas pequeñas */
     }
 }
