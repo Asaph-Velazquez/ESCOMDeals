@@ -14,7 +14,6 @@ CREATE TABLE usuario (
 CREATE TABLE vendedor (
     id_vendedor INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL UNIQUE,
-    informacion_contacto TEXT,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -22,7 +21,6 @@ CREATE TABLE vendedor (
 CREATE TABLE comprador (
     id_comprador INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL UNIQUE,
-    direccion_envio TEXT,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
