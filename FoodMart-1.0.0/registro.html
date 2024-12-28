@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>ESCOMDeals - Inicio de Sesión</title>
+    <title>ESCOMDeals - Registro de Usuario</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,36 +54,41 @@
             <img src="./images/login.png" alt="Logo" class="logo">
             
             <!-- Título principal -->
-            <h1 class="text-center my-4">Inicio de sesión</h1>
+            <h1 class="text-center my-4">Registro de Usuario</h1>
                 
             <!-- Formulario -->
-            <form id="loginForm">
+            <form id="registroForm">
                 <div class="mb-3">
                     <div class="form-floating">
-                        <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Email address">
-                        <label for="exampleInputEmail1">Correo electrónico</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Nombre Completo" required>
+                        <label for="name">Nombre Completo</label>
                     </div>
                 </div>
                 <div class="mb-3">
                     <div class="form-floating">
-                        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-                        <label for="exampleInputPassword1">Contraseña</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Correo Electrónico" required>
+                        <label for="email">Correo Electrónico</label>
                     </div>
                 </div>
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                    <label class="form-check-label" for="exampleCheck1">Recuérdame</label>
+                <div class="mb-3">
+                    <div class="form-floating">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña" required>
+                        <label for="password">Contraseña</label>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+                <div class="mb-3">
+                    <div class="form-floating">
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirmar Contraseña" required>
+                        <label for="confirmPassword">Confirmar Contraseña</label>
+                    </div>
+                </div>
+
+                <span id="error-message" class="text-danger"></span>
+
+                <button type="submit" class="btn btn-primary w-100">Registrar</button>
             </form>
-            <!-- Botón para registro -->
-            <div class="text-center mt-3">
-                <p>¿No tienes una cuenta?</p>
-                <a href="registro.html" class="btn btn-secondary">Regístrate</a>
-            </div>
         </div>
     </div>
-    <br>
 
     <!-- Footer -->
     <footer>
@@ -93,5 +98,24 @@
             <a href="privacidad.html" class="text-white">Política de Privacidad</a>
         </div>
     </footer>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorMessage = document.getElementById('error-message');
+
+            if (password !== confirmPassword) {
+                errorMessage.textContent = "Las contraseñas no coinciden.";
+                return;
+            }
+
+            errorMessage.textContent = "";
+            alert("¡Registro exitoso!");
+            // Aquí puedes añadir la lógica para enviar los datos al servidor.
+        });
+    </script>
 </body>
 </html>

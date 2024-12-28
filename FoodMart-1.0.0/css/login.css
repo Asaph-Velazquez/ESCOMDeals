@@ -14,12 +14,12 @@
 }
 
 /* Contenedor del formulario */
-form {
+#loginForm, #registroForm{
     width: 100%;
     max-width: 400px;
     padding: 20px;
-
 }
+
 
 /* Etiquetas */
 .form-label {
