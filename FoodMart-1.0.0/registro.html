@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="../FoodMart-1.0.0/css/footer.css">
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="..//FoodMart-1.0.0/js/los_chidos/validacionesForm.js"></script>
 </head>
 <body>
     <header class="fixed-top bg-light">
@@ -30,7 +31,7 @@
                 <div class="col-sm-6 col-lg-5 d-none d-lg-block">
                     <div class="search-bar bg-light p-2 my-2 rounded-4">
                         <form id="search-form" action="index.html" method="post">
-                            <input type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
+                            <input type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals"/>
                         </form>
                     </div>
                 </div>
@@ -57,57 +58,67 @@
             <h1 class="text-center my-4">Registro de Usuario</h1>
                 
             <!-- Formulario -->
-            <form id="registroForm" method="post" action="..//FoodMart-1.0.0/php/registro.php" class="container">
-                <div class="row mb-3">
-                    <div class="col-md-6">
+            <form id="registroForm" method="post" action="..//FoodMart-1.0.0/php/registro.php">
+                <div class="row g-4">
+                    <div class="col-12 mb-3">
                         <div class="form-floating">
                             <input type="text" class="form-control" id="nombres" placeholder="Nombres" name="nombre">
                             <label for="nombres">Nombre</label>
+                            <div class="mensaje-invalido"></div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12 mb-3">
                         <div class="form-floating">
                             <input type="text" class="form-control" id="apellidoPaterno" placeholder="Apellido paterno" name="apellidoPaterno">
                             <label for="apellidoPaterno">Apellido paterno</label>
+                            <div class="mensaje-invalido"></div>
                         </div>
                     </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-6">
+                    <div class="col-12 mb-3">
                         <div class="form-floating">
                             <input type="text" class="form-control" id="apellidoMaterno" placeholder="Apellido materno" name="apellidoMaterno">
                             <label for="apellidoMaterno">Apellido materno</label>
+                            <div class="mensaje-invalido"></div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12 mb-3">
                         <div class="form-floating">
                             <input type="tel" class="form-control" id="numeroTelefono" placeholder="Número de teléfono" name="telefono">
                             <label for="numeroTelefono">Número de teléfono</label>
+                            <div class="mensaje-invalido"></div>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="form-floating">
+                            <input type="email" class="form-control" id="correoElectronico" placeholder="Correo electrónico" name="email">
+                            <label for="correoElectronico">Correo electrónico</label>
+                            <div class="mensaje-invalido"></div>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="usuario" placeholder="Usuario" name="usuario">
+                            <label for="usuario">Usuario</label>
+                            <div class="mensaje-invalido"></div>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="form-floating">
+                            <input type="password" class="form-control" id="contraseña" placeholder="Contraseña" name="password">
+                            <label for="contraseña">Contraseña</label>
+                            <div class="mensaje-invalido"></div>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="form-floating">
+                            <input type="password" class="form-control" id="confirmarContraseña" placeholder="Confirmar contraseña" name="confirmarPassword">
+                            <label for="confirmarContraseña">Confirmar contraseña</label>
+                            <div class="mensaje-invalido"></div>
                         </div>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <div class="form-floating">
-                        <input type="email" class="form-control" id="correoElectronico" placeholder="Correo electrónico" name="email">
-                        <label for="correoElectronico">Correo electrónico</label>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <div class="form-floating">
-                        <input type="password" class="form-control" id="contraseña" placeholder="Contraseña" name="password">
-                        <label for="contraseña">Contraseña</label>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <div class="form-floating">
-                        <input type="password" class="form-control" id="confirmarContraseña" placeholder="Confirmar contraseña">
-                        <label for="confirmarContraseña">Confirmar contraseña</label>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Registrar</button>
+                <button type="submit" class="btn btn-primary">Registrar</button>
             </form>
-            
-            
         </div>
     </div>
 
@@ -121,21 +132,43 @@
     </footer>
 
     <script>
-        document.getElementById('registrationForm').addEventListener('submit', function(event) {
+        document.getElementById('registroForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const errorMessage = document.getElementById('error-message');
+            const password = document.getElementById('contraseña').value; 
+            const confirmPassword = document.getElementById('confirmarContraseña').value; 
+            const errorMessage = document.querySelector('.mensaje-invalido'); 
 
+            // Validar que las contraseñas coincidan
             if (password !== confirmPassword) {
                 errorMessage.textContent = "Las contraseñas no coinciden.";
-                return;
+                return; 
             }
 
-            errorMessage.textContent = "";
-            alert("¡Registro exitoso!");
-            // Aquí puedes añadir la lógica para enviar los datos al servidor.
+            errorMessage.textContent = ""; 
+
+            const formData = new FormData(this);
+
+            // Realizar la petición AJAX
+            fetch('..//FoodMart-1.0.0/php/registro.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json()) 
+            .then(data => {
+                // Manejo de la respuesta del servidor
+                if (data.success) {
+                    alert("¡Registro exitoso!"); 
+
+                } else {
+                    alert(data.message); // Muestra el mensaje de error en un alert
+                }
+            })
+            .catch(error => {
+                console.error(error); 
+                errorMessage.textContent = "Ocurrió un error en el registro. Inténtalo de nuevo.";
+                alert("Ocurrió un error en el registro. Inténtalo de nuevo."); 
+            });
         });
     </script>
 </body>

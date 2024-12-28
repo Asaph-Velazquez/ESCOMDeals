@@ -7,7 +7,8 @@ CREATE TABLE usuario (
     correo VARCHAR(200) UNIQUE NOT NULL,
     telefono VARCHAR(20) UNIQUE,
     contraseña VARCHAR(200) NOT NULL,
-    fecha_registro DATE NOT NULL DEFAULT CURRENT_DATE
+    fecha_registro DATE NOT NULL DEFAULT CURRENT_DATE,
+    alias VARCHAR(50) UNIQUE NOT NULL
 );
 
 -- Crear tabla específica para vendedores
