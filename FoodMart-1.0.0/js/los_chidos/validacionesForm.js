@@ -82,6 +82,9 @@ function validarFormulario(event) {
         alert("¡Registro exitoso!");
         document.getElementById('registroForm').submit(); // Envía el formulario
     }
+    else {
+        alert("¡Registro fallido!");
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {

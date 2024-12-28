@@ -19,7 +19,7 @@ if (!$resultado) {
 if (mysqli_num_rows($resultado) > 0) {
     $usuario = mysqli_fetch_assoc($resultado);
     if (password_verify($contrasena, $usuario['contraseña'])) {
-        header("location: ./perfil.html");
+        header("Location: ../index.html");
         exit();
     } else {
         echo 'La contraseña es incorrecta.';

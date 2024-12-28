@@ -121,6 +121,25 @@
             </form>
         </div>
     </div>
+    <!-- Modal para Mensaje -->
+    <div class="modal fade" id="mensajeModal" tabindex="-1" aria-labelledby="mensajeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="mensajeModalLabel">Estado del Registro</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <!-- Mensaje dinámico -->
+            <p id="mensajeModalTexto"></p>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+        </div>
+    </div>
+  
 
     <!-- Footer -->
     <footer>
@@ -130,46 +149,6 @@
             <a href="privacidad.html" class="text-white">Política de Privacidad</a>
         </div>
     </footer>
-
-    <script>
-        document.getElementById('registroForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const password = document.getElementById('contraseña').value; 
-            const confirmPassword = document.getElementById('confirmarContraseña').value; 
-            const errorMessage = document.querySelector('.mensaje-invalido'); 
-
-            // Validar que las contraseñas coincidan
-            if (password !== confirmPassword) {
-                errorMessage.textContent = "Las contraseñas no coinciden.";
-                return; 
-            }
-
-            errorMessage.textContent = ""; 
-
-            const formData = new FormData(this);
-
-            // Realizar la petición AJAX
-            fetch('..//FoodMart-1.0.0/php/registro.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json()) 
-            .then(data => {
-                // Manejo de la respuesta del servidor
-                if (data.success) {
-                    alert("¡Registro exitoso!"); 
-
-                } else {
-                    alert(data.message); // Muestra el mensaje de error en un alert
-                }
-            })
-            .catch(error => {
-                console.error(error); 
-                errorMessage.textContent = "Ocurrió un error en el registro. Inténtalo de nuevo.";
-                alert("Ocurrió un error en el registro. Inténtalo de nuevo."); 
-            });
-        });
-    </script>
+    
 </body>
 </html>
