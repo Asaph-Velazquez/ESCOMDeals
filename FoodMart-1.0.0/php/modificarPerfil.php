@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['foto_perfil'] = $targetFile;
         }
 
-        echo json_encode(['success' => true, 'message' => 'Perfil actualizado con éxito.']);
+        header('Location: ../perfil.html');
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al actualizar los datos: ' . mysqli_error($conexion)]);
     }
