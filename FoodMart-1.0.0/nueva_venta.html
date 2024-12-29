@@ -11,9 +11,10 @@
     <link rel="stylesheet" href="./css/nueva_venta.css">
     <link rel="stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" href="../FoodMart-1.0.0/css/footer.css">
+    <link rel="stylesheet" href="../FoodMart-1.0.0/css/las_chidas/sesion.css">
+
 </head>
 <body>
-    <!-- Header -->
     <header class="fixed-top bg-light">
         <div class="container-fluid">
             <div class="row py-3 border-bottom">
@@ -24,7 +25,7 @@
                         </a>
                     </div>
                 </div>
-
+                
                 <!-- Search bar -->
                 <div class="col-sm-6 col-lg-5 d-none d-lg-block">
                     <div class="search-bar bg-light p-2 my-2 rounded-4">
@@ -33,17 +34,32 @@
                         </form>
                     </div>
                 </div>
-
+                
                 <!-- User options -->
+                <?php session_start(); // Inicia la sesión para verificar si el usuario ha iniciado sesión ?>
                 <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
                     <ul class="d-flex list-unstyled m-0">
                         <li><a href="index.html" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
-                        <li><a href="perfil.html" class="rounded-circle bg-light p-2 mx-1">Perfil</a></li>
-                        <li><a href="wishlist.html" class="rounded-circle bg-light p-2 mx-1">Favoritos</a></li>
-                        <li><a href="carrito.html" class="rounded-circle bg-light p-2 mx-1">Carrito</a></li>
-                        <li><a href="login.html" class="rounded-circle bg-light p-2 mx-1">Ingresar</a></li>
+                        <?php if (isset($_SESSION['alias'])): ?>
+                            <li><a href="wishlist.html" class="rounded-circle bg-light p-2 mx-1">Favoritos</a></li>
+                            <li><a href="carrito.html" class="rounded-circle bg-light p-2 mx-1">Carrito</a></li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle d-flex align-items-center" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img src="<?php echo $_SESSION['foto_perfil']; ?>" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <span class="ms-2"><?php echo $_SESSION['alias']; ?></span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                    <li><a class="dropdown-item" href="perfil.html">Ver Perfil</a></li>
+                                    <li><a class="dropdown-item" href="configuracion.html">Configuración</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="./php/logout.php"><span>Cerrar Sesión</span></a></li>
+                                </ul>
+                            </li>
+                        <?php else: ?>
+                            <li><a href="login.html" class="rounded-circle bg-light p-2 mx-1">Ingresar</a></li>
+                        <?php endif; ?>
                     </ul>
-                </div>
+                </div>                
             </div>
         </div>
     </header>
