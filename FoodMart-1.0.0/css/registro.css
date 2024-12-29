@@ -1,0 +1,93 @@
+/* Contenedor principal para el contenido */
+.loginrey {
+    flex: 1; /* Ocupa el espacio disponible entre header y footer */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo {
+    max-width: 150px; /* Tamaño máximo de la imagen */
+    margin-bottom: 0px; /* Espaciado entre la imagen y el título */
+    margin-top: 40px; /* Agrega espacio superior para que la imagen esté más abajo */
+}
+
+/* Contenedor del formulario */
+#loginForm, #registroForm {
+    width: 100%;
+    max-width: 600px; /* Aumenta el tamaño máximo del formulario */
+    padding: 20px;
+    margin-top: 20px;
+}
+
+/* Etiquetas */
+.form-label {
+    font-weight: bold;
+    color: #495057; /* Texto oscuro */
+}
+
+/* Inputs */
+.form-control {
+    width: 100%; /* Ocupa todo el ancho disponible */
+    max-width: 500px; /* Aumenta el tamaño máximo de los campos */
+    border-radius: 5px;
+    border: 1px solid #ffffff;
+    padding: 15px; /* Aumenta el padding interno */
+    transition: border-color 0.3s;
+    font-size: 16px; /* Tamaño de texto más cómodo */
+    margin-bottom: 30px; /* Aumenta la separación entre campos */
+}
+
+.form-control:focus {
+    border-color: #0d6efd; /* Azul Bootstrap */
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); /* Sombra azul */
+}
+
+/* Checkbox */
+.form-check-input {
+    cursor: pointer;
+}
+
+.form-check-label {
+    margin-left: 5px;
+    font-size: 0.9rem;
+    color: #6c757d; /* Texto gris */
+}
+
+/* Botón */
+.btn-primary {
+    width: 100%;
+    max-width: 500px; /* Asegura que el botón tenga el mismo tamaño que los campos */
+    background-color: #0d6efd;
+    border: none;
+    padding: 15px; /* Aumenta el tamaño del botón */
+    font-size: 1.1rem; /* Texto más grande */
+    transition: background-color 0.3s, transform 0.2s;
+    margin-top: 10px; /* Espaciado superior del botón */
+}
+
+.btn-primary:hover {
+    background-color: #0177f5; /* Azul más oscuro */
+    transform: scale(1.05); /* Efecto de aumento */
+}
+
+/* Ajustes para filas del formulario */
+.row.g-4 .col-md-4, .row.g-4 .col-md-6 {
+    margin-bottom: 30px; /* Incrementa la separación entre filas */
+}
+
+/* Espaciado general en dispositivos pequeños */
+@media (max-width: 768px) {
+    #loginForm, #registroForm {
+        padding: 15px; /* Reduce ligeramente el padding interno */
+    }
+
+    .form-control {
+        max-width: 100%; /* Asegura que los campos ocupen todo el ancho disponible */
+    }
+
+    .btn-primary {
+        max-width: 100%; /* Botón ajustado al ancho completo */
+    }
+}
