@@ -29,10 +29,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Actualizar datos en la base de datos
-    $stmt = mysqli_prepare($conexion, "UPDATE usuario SET alias = ?, nombre = ?, correo = ?, telefono = ?, apellido_paterno=?, apellido_materno = ? WHERE id_usuario = ?");
-    mysqli_stmt_bind_param($stmt, 'ssssssi', $usuario, $nombre, $email, $telefono, $Apaterno, $Amaterno,  $user_id);
+    // Manejar la carga de la foto de perfil
+    $targetFile = null;
+    if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
+        $targetDir = '../uploads/';
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true); // Crear directorio si no existe
+        }
 
+        $targetFile = $targetDir . basename($_FILES['foto_perfil']['name']);
+        $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+
+        // Verificar si el archivo es una imagen
+        $check = getimagesize($_FILES['foto_perfil']['tmp_name']);
+        if ($check === false) {
+            echo json_encode(['success' => false, 'message' => 'El archivo no es una imagen válida.']);
+            exit;
+        }
+
+        // Verificar el tamaño del archivo (por ejemplo, máximo 5MB)
+        if ($_FILES['foto_perfil']['size'] > 5000000) {
+            echo json_encode(['success' => false, 'message' => 'El archivo es demasiado grande.']);
+            exit;
+        }
+
+        // Verificar el tipo de archivo
+        if (!in_array($imageFileType, ['jpg', 'jpeg', 'png'])) {
+            echo json_encode(['success' => false, 'message' => 'Solo se permiten archivos JPG, JPEG o PNG.']);
+            exit;
+        }
+
+        // Mover el archivo a la carpeta de destino
+        if (move_uploaded_file($_FILES['foto_perfil']['tmp_name'], $targetFile)) {
+            // Si se subió una nueva foto, actualizar la base de datos
+            $stmt = mysqli_prepare($conexion, "UPDATE usuario SET alias = ?, nombre = ?, correo = ?, telefono = ?, apellido_paterno=?, apellido_materno = ?, foto_perfil = ? WHERE id_usuario = ?");
+            mysqli_stmt_bind_param($stmt, 'sssssssi', $usuario, $nombre, $email, $telefono, $Apaterno, $Amaterno, $targetFile, $user_id);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al mover el archivo.']);
+            exit;
+        }
+    } else {
+        // Si no se sube una nueva imagen, solo actualizar los demás datos
+        $stmt = mysqli_prepare($conexion, "UPDATE usuario SET alias = ?, nombre = ?, correo = ?, telefono = ?, apellido_paterno=?, apellido_materno = ? WHERE id_usuario = ?");
+        mysqli_stmt_bind_param($stmt, 'ssssssi', $usuario, $nombre, $email, $telefono, $Apaterno, $Amaterno, $user_id);
+    }
+
+    // Ejecutar la consulta de actualización
     if (mysqli_stmt_execute($stmt)) {
         // Actualizar variables de sesión con los nuevos datos
         $_SESSION['nombre'] = $nombre;
@@ -41,6 +83,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['alias'] = $usuario;
         $_SESSION['apellido_paterno'] = $Apaterno;
         $_SESSION['apellido_materno'] = $Amaterno;
+
+        // Si se subió una foto, también actualizar la variable de sesión
+        if (isset($targetFile)) {
+            $_SESSION['foto_perfil'] = $targetFile;
+        }
 
         echo json_encode(['success' => true, 'message' => 'Perfil actualizado con éxito.']);
     } else {
