@@ -16,8 +16,8 @@ const validaciones = {
         mensaje: "El teléfono debe tener exactamente 10 dígitos"
     },
     correoElectronico: {
-        regex: /^[a-zA-Z0-9._%+-]+@alumno\.ipn\.mx$/,
-        mensaje: "El correo debe ser del dominio alumno.ipn.mx"
+        regex: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        mensaje: "El correo debe ser válido"
     },
     usuario: {
         regex: /^.{4,}$/,
@@ -60,7 +60,8 @@ function validarCampo(campo) {
 }
 
 function validarFormulario(event) {
-    event.preventDefault();
+    event.preventDefault(); // Bloquea el envío inicial
+
     const campos = document.querySelectorAll('#registroForm input');
     let esValido = true;
 
@@ -72,25 +73,21 @@ function validarFormulario(event) {
 
     const password = document.getElementById('contraseña')?.value.trim();
     const confirmarPassword = document.getElementById('confirmarContraseña')?.value.trim();
-    const errorDivConfirmar = document.getElementById('confirmarContraseña')?.nextElementSibling;
 
     if (password !== confirmarPassword) {
         esValido = false;
-        if (errorDivConfirmar) errorDivConfirmar.textContent = "Las contraseñas no coinciden.";
         document.getElementById('confirmarContraseña').classList.add('is-invalid');
-    } else {
-        if (errorDivConfirmar) errorDivConfirmar.textContent = "";
-        document.getElementById('confirmarContraseña').classList.remove('is-invalid');
-        document.getElementById('confirmarContraseña').classList.add('is-valid');
     }
 
     if (esValido) {
+        // Muestra el modal de éxito y envía el formulario después de un tiempo
         mostrarModal("¡Registro exitoso!");
-        setTimeout(() => enviarFormulario(), 2000);
+        setTimeout(() => document.getElementById('registroForm').submit(), 2000);
     } else {
         mostrarModal("Por favor corrige los errores en el formulario.", false);
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('registroForm');
