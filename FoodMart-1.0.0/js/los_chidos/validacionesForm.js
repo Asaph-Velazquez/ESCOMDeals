@@ -32,11 +32,11 @@ const validaciones = {
 function validarCampo(campo) {
     const tipo = campo.id;
     const validacion = validaciones[tipo];
-    const valor = campo.value;  // Captura el valor del campo
+    const valor = campo.value;  
     const errorDiv = campo.nextElementSibling;
 
     if (!validacion) {
-        return true; // Si el campo no tiene validación, asumir válido
+        return true;
     }
 
     const esValido = validacion.regex.test(valor);
@@ -52,15 +52,13 @@ function validarCampo(campo) {
     }
     return esValido;
 }
-// Función para mostrar mensajes en el modal dinámico
+
 function mostrarModal(mensaje, exitoso = true) {
     const modalTexto = document.getElementById('mensajeModalTexto');
     const modalHeader = document.querySelector('#mensajeModal .modal-header');
 
-    // Asignar el mensaje al modal
     modalTexto.textContent = mensaje;
 
-    // Cambiar estilo del encabezado según el resultado
     modalHeader.classList.toggle('bg-success', exitoso);
     modalHeader.classList.toggle('bg-danger', !exitoso);
 
@@ -70,18 +68,16 @@ function mostrarModal(mensaje, exitoso = true) {
 }
 
 function validarFormulario(event) {
-    event.preventDefault(); // Prevenir el envío del formulario
+    event.preventDefault(); 
     const campos = document.querySelectorAll('#registroForm input');
     let esValido = true;
 
-    // Validar cada campo individualmente
     campos.forEach(campo => {
         if (!validarCampo(campo)) {
             esValido = false;
         }
     });
 
-    // Validación de confirmación de contraseña
     const password = document.getElementById('contraseña').value;
     const confirmarPassword = document.getElementById('confirmarContraseña').value;
     const errorDivConfirmar = document.getElementById('confirmarContraseña').nextElementSibling;
@@ -95,17 +91,16 @@ function validarFormulario(event) {
         document.getElementById('confirmarContraseña').classList.remove('is-invalid');
     }
 
-    // Mostrar mensaje según resultado
     if (esValido) {
         mostrarModal("¡Registro exitoso!");
-        setTimeout(() => document.getElementById('registroForm').submit(), 2000); // Enviar formulario tras 2 segundos
+        setTimeout(() => document.getElementById('registroForm').submit(), 2000); 
     } else {
         mostrarModal("Por favor corrige los errores en el formulario.", false);
     }
 }
 
 function enviarFormulario(event) {
-    event.preventDefault(); // Evitar el envío predeterminado del formulario
+    event.preventDefault(); 
 
     const form = document.getElementById('registroForm');
     const formData = new FormData(form);
@@ -119,17 +114,15 @@ function enviarFormulario(event) {
             if (data.success) {
                 mostrarModal(data.message, true);
                 setTimeout(() => {
-                    form.reset(); // Limpia el formulario después de éxito
-                    window.location.href = '..//FoodMart-1.0.0/php/registro.php'; // Redirige si es necesario
+                    form.reset();
+                    window.location.href = '..//FoodMart-1.0.0/php/registro.php'; 
                 }, 2000);
             } else {
-                // Si el servidor envía un mensaje de error específico, lo mostramos en el modal
                 mostrarModal(data.message, false);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            // Mostrar mensaje genérico sólo si no se recibe una respuesta del servidor
             mostrarModal('Ocurrió un error inesperado. Por favor, intenta de nuevo más tarde.', false);
         });
 }
