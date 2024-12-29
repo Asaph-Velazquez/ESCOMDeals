@@ -16,7 +16,7 @@
 /* Contenedor del formulario */
 #loginForm, #registroForm {
     width: 100%;
-    max-width: 600px; /* Aumenta el tamaño máximo del formulario */
+    max-width: 800px; /* Aumenta el tamaño máximo del formulario */
     padding: 20px;
     margin-top: 20px;
 }
