@@ -32,10 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Manejar la carga de la foto de perfil
     $targetFile = null;
     if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-        $targetDir = '../uploads/';
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0755, true); // Crear directorio si no existe
-        }
+        $targetDir = 'uploads/';
+        /*
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true); // Crear directorio si no existe
+            }
+        */
 
         $targetFile = $targetDir . basename($_FILES['foto_perfil']['name']);
         $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));

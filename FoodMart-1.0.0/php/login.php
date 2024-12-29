@@ -23,7 +23,7 @@ if (mysqli_num_rows($resultado) > 0) {
     if (password_verify($contrasena, $usuario['contraseña'])) {
         // Guardar información en la sesión
         $_SESSION['alias'] = $usuario['alias']; // Cambia 'nombre' por el nombre real de la columna en tu tabla
-        $_SESSION['foto_perfil'] = $usuario['foto_perfil'] ?? './images/las_chidas/perfil.png'; // Ruta por defecto si no hay foto
+        $_SESSION['foto_perfil'] = $usuario['foto_perfil'] ?? 'uploads/perfil.png'; // Ruta por defecto si no hay foto
         $_SESSION['telefono'] = $usuario['telefono'];
         $_SESSION['correo'] = $usuario['correo'];
         $_SESSION['nombre'] = $usuario['nombre'];
