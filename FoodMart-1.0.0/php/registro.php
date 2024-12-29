@@ -51,7 +51,7 @@
         if (mysqli_stmt_execute($stmt)) {
             // Puedes guardar el id del usuario en la sesión si es necesario
             $_SESSION['user_id'] = mysqli_insert_id($conexion);
-            echo json_encode(['success' => true, 'message' => 'Registro exitoso.']);
+            header('Location: ../login.html');
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al registrar los datos: ' . mysqli_error($conexion)]);
         }
