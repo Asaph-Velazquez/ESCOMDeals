@@ -77,6 +77,60 @@
     margin-bottom: 30px; /* Incrementa la separación entre filas */
 }
 
+
+.mensaje-invalido{
+
+    text-align: center;
+}
+
+.position-relative {
+    position: relative;
+}
+
+.position-absolute {
+    position: absolute;
+}
+
+.ojo {
+    padding-top: 10%; /* Altura del contenedor */
+}
+
+.fa-eye {
+    font-size: 1.5rem; /* Tamaño del ícono */
+}
+
+
+#togglePassword, #toggleConfirmPassword {
+    font-size: 1.5rem; /* Define un tamaño fijo para el ícono */
+    color: #6c757d; /* Color inicial */
+    cursor: pointer; /* Cambia el cursor al pasar sobre el ícono */
+    width: 24px; /* Ancho fijo para el ícono */
+    height: 24px; /* Altura fija para el ícono */
+}
+
+#togglePassword:hover, #toggleConfirmPassword:hover {
+    color: #0d6efd; /* Cambia a azul al pasar el mouse */
+}
+
+.fa-eye {
+    font-size: 1.5rem; /* Tamaño del ícono */
+    color: #6c757d; /* Color inicial */
+    cursor: pointer; /* Cambia el cursor al pasar sobre el ícono */
+}
+
+.fa-eye:hover {
+    color: #0d6efd; /* Cambia a azul cuando pasas el mouse */
+}
+
+
+
+
+
+
+
+
+
+
 /* Espaciado general en dispositivos pequeños */
 @media (max-width: 768px) {
     #loginForm, #registroForm {
