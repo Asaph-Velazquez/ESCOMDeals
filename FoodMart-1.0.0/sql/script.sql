@@ -34,6 +34,8 @@ CREATE TABLE producto (
     precio DECIMAL(10, 2) NOT NULL,
     stock INT NOT NULL CHECK (stock >= 0),
     categoria VARCHAR(50),
+    imagen_producto VARCHAR(1000),
+    disponibilidad BOOLEAN NOT NULL,
     id_vendedor INT NOT NULL,
     FOREIGN KEY (id_vendedor) REFERENCES vendedor(id_vendedor) ON DELETE CASCADE ON UPDATE CASCADE
 );

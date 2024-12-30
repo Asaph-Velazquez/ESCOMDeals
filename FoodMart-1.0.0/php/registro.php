@@ -61,6 +61,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['apellido_paterno'] = $APaterno;
         $_SESSION['apellido_materno'] = $AMaterno;
 
+                // Insertar en la tabla vendedor
+                $stmtVendedor = mysqli_prepare($conexion, "INSERT INTO vendedor (id_usuario) VALUES (?)");
+                mysqli_stmt_bind_param($stmtVendedor, 'i', $usuarioRegistrado);
+                mysqli_stmt_execute($stmtVendedor);
+                mysqli_stmt_close($stmtVendedor);
+        
+                // Insertar en la tabla comprador
+                $stmtComprador = mysqli_prepare($conexion, "INSERT INTO comprador (id_usuario) VALUES (?)");
+                mysqli_stmt_bind_param($stmtComprador, 'i', $usuarioRegistrado);
+                mysqli_stmt_execute($stmtComprador);
+                mysqli_stmt_close($stmtComprador);
+
         // Redirigir a la página de inicio
         header('Location: ../index.html');
         exit();
