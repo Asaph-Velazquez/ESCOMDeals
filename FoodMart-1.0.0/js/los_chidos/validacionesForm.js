@@ -60,33 +60,34 @@ function validarCampo(campo) {
 }
 
 function validarFormulario(event) {
-    event.preventDefault(); // Bloquea el envío inicial
+    event.preventDefault(); // Bloquea el envío tradicional del formulario
 
-    const campos = document.querySelectorAll('#registroForm input');
-    let esValido = true;
+    const form = event.target; // El formulario que se está enviando
+    const formData = new FormData(form); // Crear un objeto FormData con los datos del formulario
 
-    campos.forEach(campo => {
-        if (!validarCampo(campo)) {
-            esValido = false;
+    fetch('../FoodMart-1.0.0/php/registro.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json()) // Parsear la respuesta como JSON
+    .then(data => {
+        if (data.success) {
+            // Muestra mensaje de éxito y redirige después de 2 segundos
+            mostrarModal("¡Registro exitoso!");
+            setTimeout(() => {
+                window.location.href = 'pagina-principal.html'; // Cambia esta URL según tus necesidades
+            }, 2000);
+        } else {
+            // Muestra el mensaje de error enviado desde PHP
+            mostrarModal(data.message, false);
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarModal("Ocurrió un error en el servidor. Inténtalo más tarde.", false);
     });
-
-    const password = document.getElementById('contraseña')?.value.trim();
-    const confirmarPassword = document.getElementById('confirmarContraseña')?.value.trim();
-
-    if (password !== confirmarPassword) {
-        esValido = false;
-        document.getElementById('confirmarContraseña').classList.add('is-invalid');
-    }
-
-    if (esValido) {
-        // Muestra el modal de éxito y envía el formulario después de un tiempo
-        mostrarModal("¡Registro exitoso!");
-        setTimeout(() => document.getElementById('registroForm').submit(), 2000);
-    } else {
-        mostrarModal("Por favor corrige los errores en el formulario.", false);
-    }
 }
+
 
 
 document.addEventListener('DOMContentLoaded', function () {
