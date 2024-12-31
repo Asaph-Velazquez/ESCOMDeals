@@ -1,3 +1,45 @@
+<?php session_start(); // Inicia la sesión para verificar si el usuario ha iniciado sesión ?>
+<?php
+// Verificar si el usuario ha iniciado sesión
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: login.html");
+    exit();
+}
+
+// Conexión a la base de datos
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "escomdeals";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Verificar conexión
+if ($conn->connect_error) {
+    die("Error de conexión: " . $conn->connect_error);
+}
+
+// Obtener ID de vendedor
+$id_usuario = $_SESSION['id_usuario'];
+$stmt = $conn->prepare("SELECT id_vendedor FROM vendedor WHERE id_usuario = ?");
+$stmt->bind_param("i", $id_usuario);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows == 0) {
+    echo "No tienes permisos para acceder a esta página.";
+    exit();
+}
+
+$id_vendedor = $result->fetch_assoc()['id_vendedor'];
+
+// Obtener productos del vendedor
+$stmt = $conn->prepare("SELECT * FROM producto WHERE id_vendedor = ?");
+$stmt->bind_param("i", $id_vendedor);
+$stmt->execute();
+$productos = $stmt->get_result();
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -36,7 +78,6 @@
                 </div>
                 
                 <!-- User options -->
-                <?php session_start(); // Inicia la sesión para verificar si el usuario ha iniciado sesión ?>
                 <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
                     <ul class="d-flex list-unstyled m-0">
                         <li><a href="index.html" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
@@ -65,46 +106,75 @@
     </header>
     <!-- Panel de Ventas -->
     <main class="container my-5">
-        <!-- Botón de Nueva Venta -->
         <div class="mb-4">
-            <a href="nueva_venta.html"><button class="btn btn-yellow">Nueva Venta</button></a>
+            <a href="nueva_venta.html" class="btn btn-primary">Nueva Venta</a>
         </div>
-
-        <!-- Productos -->
-        <div class="card p-3 shadow-sm product-card">
-            <div class="row align-items-center">
-                <!-- Imagen y descripción -->
-                <div class="col-md-8">
-                    <div class="row">
-                        <div class="col-md-4 text-center">
-                            <div class="product-image">
-                                <img src="images/las_chidas/gomita.jpg" alt="Producto de ejemplo" class="img-fluid">
+        <?php if ($productos->num_rows > 0): ?>
+            <?php while ($producto = $productos->fetch_assoc()): ?>
+                <div class="card p-3 shadow-sm mb-3">
+                    <div class="row align-items-center">
+                        <!-- Imagen y descripción -->
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-4 text-center">
+                                    <img src="php/imgsVentas/<?= htmlspecialchars($producto['imagen_producto']) ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>" class="img-fluid">
+                                </div>
+                                <div class="col-md-8">
+                                    <h5><?= htmlspecialchars($producto['nombre']) ?></h5>
+                                    <p><?= htmlspecialchars($producto['descripcion']) ?></p>
+                                    <p>Precio: $<?= number_format($producto['precio'], 2) ?></p>
+                                    <p>Stock: <?= htmlspecialchars($producto['stock']) ?></p>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-8">
-                            <h5 class="product-description">Audífonos Inalámbricos</h5>
-                            <p class="product-details">
-                                Disfruta de música de alta calidad con estos audífonos inalámbricos. Batería de larga duración y diseño ergonómico.
-                            </p>
+                        <!-- Botones -->
+                        <div class="col-md-4 text-center">
+                            <button class="btn btn-warning" onclick="editarProducto(<?= $producto['id_producto'] ?>)">Editar</button>
+                            <button class="btn btn-danger" onclick="eliminarProducto(<?= $producto['id_producto'] ?>)">Eliminar</button>
+                            <button class="btn <?= $producto['disponibilidad'] ? 'btn-success' : 'btn-secondary' ?>" onclick="toggleDisponibilidad(<?= $producto['id_producto'] ?>)">
+                                <?= $producto['disponibilidad'] ? 'Disponible' : 'No Disponible' ?>
+                            </button>
                         </div>
                     </div>
                 </div>
-                <!-- Botones -->
-                <div class="col-md-4 text-center d-flex flex-column align-items-center gap-2">
-                    <button class="btn btn-edit">
-                        <img src="../FoodMart-1.0.0/images/las_chidas/editar.png" alt="Editar" class="icon"> Editar
-                    </button>
-                    <button class="btn btn-delete">
-                        <img src="./images/las_chidas/eliminar.png" alt="Eliminar" class="icon"> Eliminar</button>
-                    <button class="btn btn-availability">
-                        Disponible
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        
+            <?php endwhile; ?>
+        <?php else: ?>
+            <p>No tienes productos registrados.</p>
+        <?php endif; ?>
     </main>
+    
+    <script>
+    function editarProducto(idProducto) {
+        window.location.href = `editar_producto.php?id_producto=${idProducto}`;
+    }
+    
+    function eliminarProducto(idProducto) {
+        if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+            fetch(`eliminar_producto.php?id_producto=${idProducto}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Producto eliminado.');
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        }
+    }
+    
+    function toggleDisponibilidad(idProducto) {
+        fetch(`toggle_disponibilidad.php?id_producto=${idProducto}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
+    }
+    </script>
 
     <!-- Footer -->
     <footer>
