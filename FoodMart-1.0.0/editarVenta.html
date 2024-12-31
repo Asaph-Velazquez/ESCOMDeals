@@ -1,8 +1,77 @@
 <?php session_start(); // Inicia la sesión para verificar si el usuario ha iniciado sesión ?>
+<?php
+
+// Verificar si el usuario ha iniciado sesión
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: login.html");
+    exit();
+}
+
+// Conexión a la base de datos
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "escomdeals";
+
+$conexion = new mysqli($servername, $username, $password, $dbname);
+
+// Verifica si la conexión es exitosa
+if ($conexion->connect_error) {
+    die("Conexión fallida: " . $conexion->connect_error);
+}
+
+// Obtener el ID del producto de la URL (suponiendo que se pasa como parámetro)
+$id_producto = isset($_GET['id_producto']) ? intval($_GET['id_producto']) : 0;
+
+// Consulta para obtener los datos del producto
+$query = "SELECT * FROM producto WHERE id_producto = ?";
+$stmt = $conexion->prepare($query);
+
+// Verifica si la preparación de la declaración fue exitosa
+if ($stmt === false) {
+    die("Error en la preparación de la declaración: " . $conexion->error);
+}
+
+// Vincula el parámetro y ejecuta la consulta
+$stmt->bind_param('i', $id_producto);
+$stmt->execute();
+$resultado = $stmt->get_result();
+
+if ($resultado->num_rows > 0) {
+    $producto = $resultado->fetch_assoc();
+    // Aquí puedes procesar los datos del producto
+} else {
+    // Manejo de error: producto no encontrado
+    die('Producto no encontrado');
+}
+
+// Ejemplo de eliminar el producto (si es necesario)
+$delete_query = "DELETE FROM horario WHERE id_producto = ?";
+$delete_stmt = $conexion->prepare($delete_query);
+
+// Verifica si la preparación de la declaración fue exitosa
+if ($delete_stmt === false) {
+    die("Error en la preparación de la declaración para eliminar: " . $conexion->error);
+}
+
+// Vincula el parámetro y ejecuta la eliminación
+$delete_stmt->bind_param('i', $id_producto);
+$delete_stmt->execute();
+
+if ($delete_stmt->affected_rows > 0) {
+    echo "Producto eliminado correctamente.";
+}
+
+// Cierra las conexiones
+$stmt->close();
+$delete_stmt->close();
+$conexion->close();
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Nueva Venta - ESCOMDeals</title>
+    <title>Editar Venta - ESCOMDeals</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -235,30 +304,30 @@
                     <div class="mb-4">
                         <label for="imagenProducto" class="form-label fw-bold">Imagenes del Producto</label>
                         <input type="file" class="form-control mb-3" id="imagenProducto" name="imagenProducto" accept="image/*">
-                        <img src="https://dummyimage.com/600x700/dee2e6/6c757d.jpg" alt="Vista previa" class="img-fluid border rounded">
+                        <img src="php/imgsVentas/<?php echo htmlspecialchars($producto['imagen_producto']);?>" alt="Vista previa" class="img-fluid border rounded">
                     </div>
                 </div>
                 <!-- Detalles del producto -->
                 <div class="col-md-6">
                     <h1 class="fw-bolder mb-3">
-                        <input type="text" class="form-control border-0 fs-3 fw-bold" id="nombreProducto" name="nombreProducto" placeholder="Ingrese el nombre del producto" required>
+                        <input type="text" class="form-control border-0 fs-3 fw-bold" id="nombreProducto" name="nombreProducto" value="<?php echo htmlspecialchars($producto['nombre']); ?>"required>
                     </h1>
                     <div class="fs-5 mb-4">
-                        <span class="ms-3">$<input type="number" class="form-control d-inline w-auto p-0 text-center" id="precioDescuento" name="precioDescuento" placeholder="$$$" required></span>
+                        <span class="ms-3"><input type="number" class="form-control d-inline w-auto p-0 text-center" id="precioDescuento" name="precioDescuento" placeholder="$$$" value="<?php echo htmlspecialchars($producto['precio']); ?>" required></span>
                     </div>
 
                     <div class="mb-3 d-flex align-items-center">
                         <select name="categoriaProducto" class="form-select w-auto" required>
                             <option value="">Selecciona una categoría</option>
-                            <option value="Tecnologia">Tecnología</option>
-                            <option value="Alimentos">Alimentos</option>
-                            <option value="Libros">Libros</option>
-                            <option value="Accesorios">Accesorios</option>
-                        </select>
+                            <option value="Tecnologia" <?php echo ($producto['categoria'] == 'Tecnologia') ? 'selected' : ''; ?>>Tecnología</option>
+                            <option value="Alimentos" <?php echo ($producto['categoria'] == 'Alimentos') ? 'selected' : ''; ?>>Alimentos</option>
+                            <option value="Libros" <?php echo ($producto['categoria'] == 'Libros') ? 'selected' : ''; ?>>Libros</option>
+                            <option value="Accesorios" <?php echo ($producto['categoria'] == 'Accesorios') ? 'selected' : ''; ?>>Accesorios</option>
+                        </select>                        
                     </div>
 
                     <p class="lead">
-                        <textarea class="form-control" id="descripcionProducto" name="descripcionProducto" rows="3" placeholder="Ingrese una descripción breve del producto"></textarea>
+                        <textarea class="form-control" id="descripcionProducto" name="descripcionProducto" rows="3" placeholder="Ingrese una descripción breve del producto"><?php echo htmlspecialchars($producto['descripcion']); ?></textarea>
                     </p>
                     <!-- Horario -->
                     <div class="mb-3">
@@ -316,7 +385,7 @@
                                id="stockProducto" 
                                name="stockProducto" 
                                min="0" 
-                               value="1" 
+                               value="<?php echo htmlspecialchars($producto['stock']); ?>"
                                required>
                     </div>
 

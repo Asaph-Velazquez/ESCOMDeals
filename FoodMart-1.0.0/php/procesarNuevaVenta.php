@@ -119,7 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $conn->commit();
 
         // Retornar éxito
-        echo json_encode(['success' => true, 'message' => 'Producto creado exitosamente.']);
+        header('Location: ../panel_ventas.html');
         exit();
 
     } catch (Exception $e) {

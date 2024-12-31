@@ -40,7 +40,7 @@ CREATE TABLE producto (
     FOREIGN KEY (id_vendedor) REFERENCES vendedor(id_vendedor) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
---Crear tabla para el horario de los productos
+-- Crear tabla para el horario de los productos
 CREATE TABLE horario(
     id_horario int AUTO_INCREMENT PRIMARY KEY,
     id_producto int,
@@ -100,3 +100,16 @@ CREATE TABLE notificacion (
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- Crear tabla de carrito (relacionando usuarios y productos, con cantidad)
+CREATE TABLE carrito (
+    id_usuario INT NOT NULL,
+    id_producto INT NOT NULL,
+    cantidad INT NOT NULL CHECK (cantidad > 0), -- La cantidad debe ser al menos 1
+    PRIMARY KEY (id_usuario, id_producto),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+
