@@ -1,3 +1,33 @@
+<?php
+session_start();
+
+// Verificar que el usuario esté logueado
+if (!isset($_SESSION['id_usuario'])) {
+    echo "<script>alert('Por favor, inicia sesión para ver tu carrito.'); window.location.href = 'login.html';</script>";
+    exit();
+}
+
+// Conectar a la base de datos
+include('php/conexion.php');
+
+// Obtener el id del usuario de la sesión
+$id_usuario = $_SESSION['id_usuario'];
+
+// Consulta preparada para obtener los productos del carrito
+$sql = "SELECT p.nombre, p.precio, c.cantidad, p.id_producto 
+        FROM carrito c 
+        JOIN producto p ON c.id_producto = p.id_producto 
+        WHERE c.id_usuario = ?";
+$stmt = $conn->prepare($sql);
+
+// Vinculamos el parámetro
+$stmt->bind_param("i", $id_usuario);
+
+// Ejecutamos la consulta
+$stmt->execute();
+$result = $stmt->get_result();
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,13 +41,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="css/vendor.css">
     <link rel="stylesheet" type="text/css" href="style.css">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../FoodMart-1.0.0/css/footer.css">
-    <link rel="stylesheet" href="../FoodMart-1.0.0/css/los_chidos/sesion.css">
-
+    <link rel="stylesheet" href="../FoodMart-1.0.0/css/las_chidas/sesion.css">
 </head>
 <body>
     <header class="fixed-top bg-light">
@@ -30,7 +58,6 @@
                         </a>
                     </div>
                 </div>
-                
                 <!-- Search bar -->
                 <div class="col-sm-6 col-lg-5 d-none d-lg-block">
                     <div class="search-bar bg-light p-2 my-2 rounded-4">
@@ -39,9 +66,7 @@
                         </form>
                     </div>
                 </div>
-                
                 <!-- User options -->
-                <?php session_start(); // Inicia la sesión para verificar si el usuario ha iniciado sesión ?>
                 <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
                     <ul class="d-flex list-unstyled m-0">
                         <li><a href="index.html" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
@@ -55,7 +80,7 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
                                     <li><a class="dropdown-item" href="perfil.html">Ver Perfil</a></li>
-                                    <li><a class="dropdown-item" href="panel_ventas.html">Ventas</a></li>
+                                    <li><a class="dropdown-item" href="configuracion.html">Configuración</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="./php/logout.php"><span>Cerrar Sesión</span></a></li>
                                 </ul>
@@ -94,18 +119,79 @@
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="cart-body">
-                        <!-- Productos del carrito se generarán dinámicamente -->
+                    <tbody>
+                        <?php
+                        if ($result->num_rows > 0) {
+                            $total = 0;
+                            while ($item = $result->fetch_assoc()) {
+                                $subtotal = $item['precio'] * $item['cantidad'];
+                                $total += $subtotal;
+                                echo "
+                                <tr>
+                                    <td>{$item['nombre']}</td>
+                                    <td>\${$item['precio']}</td>
+                                    <td>
+                                        <form action='php/actualizar_cantidad.php' method='POST'>
+                                            <input type='number' name='quantity' value='{$item['cantidad']}' min='1'>
+                                            <input type='hidden' name='product_id' value='{$item['id_producto']}'>
+                                            <button type='submit' class='btn btn-secondary btn-sm'>Actualizar</button>
+                                        </form>
+                                    </td>
+                                    <td>\${$subtotal}</td>
+                                    <td>
+                                        <a href='php/eliminar_carrito.php?id_producto={$item['id_producto']}' class='btn btn-danger btn-sm'>Eliminar</a>
+                                    </td>
+                                </tr>
+                                ";
+                            }
+                            echo "
+                            <tr>
+                                <td colspan='4' class='text-end'>Total</td>
+                                <td>\${$total}</td>
+                            </tr>
+                            ";
+                        } else {
+                            echo "<tr><td colspan='5' class='text-center'>Tu carrito está vacío.</td></tr>";
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>
             <div class="text-end">
-                <h3 id="total-price">Total: $0.00</h3>
-                <button class="btn btn-success" onclick="checkout()">Finalizar Compra</button>
+                <!-- Usamos PHP para decidir si el carrito tiene productos -->
+                <?php if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
+                    <!-- Si el carrito no está vacío, se permite finalizar la compra -->
+                    <form action="index.html" onsubmit="return checkout(true)">
+                        <button type="submit" class="btn btn-success">Finalizar Compra</button>
+                    </form>
+                <?php else: ?>
+                    <!-- Si el carrito está vacío, mostramos un mensaje diferente -->
+                    <form action="login.html" onsubmit="return checkout(false)">
+                        <button type="submit" class="btn btn-success">Finalizar Compra</button>
+                    </form>
+                <?php endif; ?>
             </div>
+            
         </div>
     </section>
-
+    <script>
+        // Función para manejar la finalización de la compra con alerta
+        function checkout(isNotEmpty) {
+            if (isNotEmpty) {
+                // Si el carrito tiene productos
+                alert("¡Gracias por tu compra!");
+                // Redirige a la página de inicio
+                window.location.href = "index.html";  // Puedes cambiar la URL si lo deseas
+            } else {
+                // Si el carrito está vacío
+                alert("Tu carrito está vacío. Agrega productos antes de finalizar la compra.");
+                // Redirige a la página de login
+               // window.location.href = "login.html";  // Puedes cambiar la URL si lo deseas
+            }
+    
+            return false;  // Prevenir el envío del formulario porque la redirección se maneja aquí
+        }
+    </script>
     <!-- Footer -->
     <footer>
         <div class="container-fluid">
@@ -114,88 +200,11 @@
             <a href="privacidad.html" class="text-white">Política de Privacidad</a>
         </div>
     </footer>
-    
-    <!-- Scripts -->
-    <script>
-        const cart = []; // Arreglo para almacenar los productos
-
-        // Función para agregar productos al carrito
-        function addToCart(productName, productPrice) {
-            const existingProduct = cart.find(item => item.name === productName);
-            if (existingProduct) {
-                existingProduct.quantity++;
-            } else {
-                cart.push({ name: productName, price: productPrice, quantity: 1 });
-            }
-            renderCart();
-        }
-
-        // Función para eliminar productos del carrito
-        function removeFromCart(productName) {
-            const productIndex = cart.findIndex(item => item.name === productName);
-            if (productIndex > -1) {
-                cart.splice(productIndex, 1);
-            }
-            renderCart();
-        }
-
-        // Función para actualizar el subtotal
-        function updateQuantity(productName, newQuantity) {
-            const product = cart.find(item => item.name === productName);
-            if (product) {
-                product.quantity = parseInt(newQuantity);
-                if (product.quantity <= 0) {
-                    removeFromCart(productName);
-                }
-            }
-            renderCart();
-        }
-
-        // Función para renderizar los productos en la tabla
-        function renderCart() {
-            const cartBody = document.getElementById("cart-body");
-            const totalPriceElement = document.getElementById("total-price");
-            cartBody.innerHTML = ""; // Limpiar tabla
-            let total = 0;
-
-            cart.forEach(item => {
-                const subtotal = item.price * item.quantity;
-                total += subtotal;
-
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>$${item.price.toFixed(2)}</td>
-                    <td>
-                        <input type="number" value="${item.quantity}" min="1" class="form-control" 
-                            onchange="updateQuantity('${item.name}', this.value)">
-                    </td>
-                    <td>$${subtotal.toFixed(2)}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="removeFromCart('${item.name}')">Eliminar</button>
-                    </td>
-                `;
-                cartBody.appendChild(row);
-            });
-
-            totalPriceElement.textContent = `Total: $${total.toFixed(2)}`;
-        }
-
-        // Función para finalizar la compra
-        function checkout() {
-            if (cart.length === 0) {
-                alert("Tu carrito está vacío.");
-                return;
-            }
-            alert("¡Gracias por tu compra!");
-            cart.length = 0; // Vaciar carrito
-            renderCart();
-        }
-
-        // Ejemplo de productos predefinidos para probar la funcionalidad
-        addToCart("Auriculares Bluetooth", 150);
-        addToCart("Mouse Gamer", 80);
-        addToCart("Teclado Mecánico", 300);
-    </script>
 </body>
 </html>
+
+<?php
+// Cerrar la conexión
+$stmt->close();
+$conn->close();
+?>
