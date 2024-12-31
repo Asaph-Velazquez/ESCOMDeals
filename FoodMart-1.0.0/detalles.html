@@ -1,10 +1,5 @@
-<?php session_start(); // Inicia la sesión para verificar si el usuario ha iniciado sesión ?>
 <?php
-// Verificar si el usuario ha iniciado sesión
-if (!isset($_SESSION['id_usuario'])) {
-    header("Location: login.html");
-    exit();
-}
+session_start();
 
 // Conexión a la base de datos
 $servername = "localhost";
@@ -14,220 +9,90 @@ $dbname = "escomdeals";
 
 $conexion = new mysqli($servername, $username, $password, $dbname);
 
-// Verifica si la conexión es exitosa
 if ($conexion->connect_error) {
     die("Conexión fallida: " . $conexion->connect_error);
 }
 
-// Obtener el ID del producto de la URL (suponiendo que se pasa como parámetro)
+// Obtener el ID del producto
 $id_producto = isset($_GET['id_producto']) ? intval($_GET['id_producto']) : 0;
 
-// Consulta para obtener los datos del producto
-$query = "SELECT * FROM producto WHERE id_producto = ?";
+// Consulta para obtener los datos del producto y el vendedor
+$query = "SELECT p.*, u.alias, u.foto_perfil 
+          FROM producto p 
+          JOIN vendedor v ON p.id_vendedor = v.id_vendedor
+          JOIN usuario u ON v.id_usuario = u.id_usuario 
+          WHERE p.id_producto = ?";
 $stmt = $conexion->prepare($query);
 
-// Verifica si la preparación de la declaración fue exitosa
 if ($stmt === false) {
     die("Error en la preparación de la declaración: " . $conexion->error);
 }
 
-// Vincula el parámetro y ejecuta la consulta
 $stmt->bind_param('i', $id_producto);
 $stmt->execute();
 $resultado = $stmt->get_result();
 
 if ($resultado->num_rows > 0) {
     $producto = $resultado->fetch_assoc();
-    // Aquí puedes procesar los datos del producto
 } else {
-    // Manejo de error: producto no encontrado
     die('Producto no encontrado');
 }
 
-// Cierra las conexiones
+// Obtener el horario del producto
+$query_horario = "SELECT dia, horario FROM horario WHERE id_producto = ?";
+$stmt_horario = $conexion->prepare($query_horario);
+$stmt_horario->bind_param('i', $id_producto);
+$stmt_horario->execute();
+$result_horario = $stmt_horario->get_result();
+
+$horarios = [];
+while ($row = $result_horario->fetch_assoc()) {
+    $horarios[$row['dia']] = $row['horario'];
+}
+
 $stmt->close();
-$conexion->close();
+$stmt_horario->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Nueva Venta - ESCOMDeals</title>
+    <title>Detalles del Producto - ESCOMDeals</title>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Nueva venta del usuario en ESCOMDeals.">
-
+    <meta name="description" content="Detalles del producto en ESCOMDeals">
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="./css/nueva_venta.css">
+    <!-- Estilos personalizados -->
     <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="stylesheet" href="../FoodMart-1.0.0/css/footer.css">
-    <link rel="stylesheet" href="../FoodMart-1.0.0/css/los_chidos/sesion.css">
-
-    <script>
-    // Función para previsualizar la imagen
-    function previewImage(input) {
-        const preview = input.nextElementSibling; // La imagen está justo después del input
-        
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-            }
-            
-            reader.readAsDataURL(input.files[0]);
-        } else {
-            preview.src = "https://dummyimage.com/600x700/dee2e6/6c757d.jpg";
+    <link rel="stylesheet" href="css/footer.css">
+    
+    <style>
+        .stars {
+            color: #ffd700;
+            font-size: 1.25rem;
         }
-    }
-
-    // Función para manejar los campos de horario
-    function handleScheduleFields() {
-        // Array con los días de la semana
-        const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
-        
-        // Para cada día
-        dias.forEach(dia => {
-            const checkbox = document.getElementById(dia);
-            const horasInput = document.getElementById('horas' + dia.charAt(0).toUpperCase() + dia.slice(1));
-            
-            // Evento para cuando se marca/desmarca el checkbox
-            checkbox.addEventListener('change', function() {
-                // Habilitar/deshabilitar el campo de horas
-                horasInput.disabled = !this.checked;
-                
-                // Si se habilita, mantener el valor actual o establecer un valor por defecto
-                if (this.checked) {
-                    if (!horasInput.value) {
-                        // Valor por defecto según sea fin de semana o no
-                        const esFinDeSemana = dia === 'sabado' || dia === 'domingo';
-                        horasInput.value = esFinDeSemana ? '10:00 AM - 4:00 PM' : '9:00 AM - 6:00 PM';
-                    }
-                }
-            });
-        });
-    }
-
-    // Función para manejar la relación entre stock y disponibilidad
-    function handleStockAndAvailability() {
-        const stockInput = document.getElementById('stockProducto');
-        const disponibilidadSwitch = document.getElementById('disponibilidadProducto');
-        const estadoDisponibilidad = document.getElementById('estadoDisponibilidad');
-
-        // Actualizar disponibilidad basado en stock
-        stockInput.addEventListener('change', function() {
-            const stockValue = parseInt(this.value) || 0;
-            
-            if (stockValue <= 0) {
-                disponibilidadSwitch.checked = false;
-                estadoDisponibilidad.textContent = 'Producto no disponible';
-                disponibilidadSwitch.disabled = true;
-            } else {
-                disponibilidadSwitch.disabled = false;
-                if (disponibilidadSwitch.checked) {
-                    estadoDisponibilidad.textContent = 'Producto disponible';
-                }
-            }
-        });
-
-        // Actualizar texto basado en el switch de disponibilidad
-        disponibilidadSwitch.addEventListener('change', function() {
-            estadoDisponibilidad.textContent = this.checked ? 
-                'Producto disponible' : 
-                'Producto no disponible';
-            
-            // Si se marca como no disponible, establecer stock en 0
-            if (!this.checked) {
-                stockInput.value = 0;
-            } else if (stockInput.value === '0') {
-                stockInput.value = 1;
-            }
-        });
-    }
-
-    // Validación del formulario
-    function validateForm(form) {
-        // Obtener los campos requeridos
-        const nombre = form.nombreProducto.value.trim();
-        const precio = form.precioDescuento.value;
-        const descripcion = form.descripcionProducto.value.trim();
-        const imagen = form.imagenProducto.files[0];
-        const stock = parseInt(form.stockProducto.value);
-        const disponibilidad = form.disponibilidadProducto.checked;
-        
-        // Validar campos obligatorios
-        if (!nombre) {
-            alert('Por favor, ingrese el nombre del producto');
-            return false;
+        .vendor-info img {
+            border: 3px solid #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
-        
-        if (!precio || precio <= 0) {
-            alert('Por favor, ingrese un precio válido');
-            return false;
+        .product-image {
+            max-height: 500px;
+            object-fit: contain;
         }
-        
-        if (!descripcion) {
-            alert('Por favor, ingrese una descripción del producto');
-            return false;
+        .review-card {
+            background-color: #f8f9fa;
+            transition: transform 0.2s;
         }
-        
-        if (!imagen) {
-            alert('Por favor, seleccione una imagen para el producto');
-            return false;
+        .review-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-
-        // Validar stock y disponibilidad
-        if (isNaN(stock) || stock < 0) {
-            alert('Por favor, ingrese un valor válido para el stock');
-            return false;
-        }
-
-        if (disponibilidad && stock <= 0) {
-            alert('No puede marcar como disponible un producto sin stock');
-            return false;
-        }
-
-        if (!disponibilidad && stock > 0) {
-            alert('Un producto con stock debe estar marcado como disponible');
-            return false;
-        }
-        
-        // Validar que al menos un día esté seleccionado
-        const diasSeleccionados = document.querySelectorAll('input[name="dias[]"]:checked');
-        if (diasSeleccionados.length === 0) {
-            alert('Por favor, seleccione al menos un día de disponibilidad');
-            return false;
-        }
-        
-        return true;
-    }
-
-    // Inicializar cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', function() {
-        // Configurar la previsualización de imagen
-        const imageInput = document.getElementById('imagenProducto');
-        imageInput.addEventListener('change', function() {
-            previewImage(this);
-        });
-        
-        // Configurar los campos de horario
-        handleScheduleFields();
-        
-        // Configurar la gestión de stock y disponibilidad
-        handleStockAndAvailability();
-        
-        // Configurar la validación del formulario
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function(e) {
-            if (!validateForm(this)) {
-                e.preventDefault();
-            }
-        });
-    });
-    </script>
-
+    </style>
 </head>
 <body>
+    <!-- Header -->
     <header class="fixed-top bg-light">
         <div class="container-fluid">
             <div class="row py-3 border-bottom">
@@ -275,191 +140,346 @@ $conexion->close();
             </div>
         </div>
     </header>
+    <!-- Contenido principal -->
+    <main class="container" style="margin-top: 100px;">
+        <div class="row mb-5">
+            <!-- Información del vendedor -->
+            <div class="col-12 text-center mb-4">
+                <div class="vendor-info">
+                    <img src="php/<?php echo htmlspecialchars($producto['foto_perfil']); ?>" 
+                         alt="Vendedor" 
+                         class="rounded-circle mb-2"
+                         style="width: 140px; height: 140px; object-fit: cover;">
+                    <h4><?php echo htmlspecialchars($producto['alias']); ?></h4>
+                </div>
+            </div>
 
-        <main class="container my-5">
-            <form action="" method="POST" enctype="multipart/form-data">
-                <div class="row gx-4 gx-lg-5 align-items-center">
-                    <h1 class="fw-bolder mb-3">
-                        <input type="text" class="form-control border-0 fs-3 fw-bold" id="Alias" name="Alias"  value="NombreAlias" 
-                        style="text-align: center; font-family:'Lucida Sans', 'Lucida Sans Regular', 
-                                'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; color: darkblue;" required>
-                    </h1>
-                    <!-- Imagen del producto -->
-                    <div class="col-md-6">
-                        <div class="mb-4">
-                            <label for="imagenProducto" class="form-label fw-bold">Imagenes del Producto</label>
-                            <input type="file" class="form-control mb-3" id="imagenProducto" name="imagenProducto" accept="image/*">
-                            <img src="https://dummyimage.com/600x700/dee2e6/6c757d.jpg" alt="Vista previa" class="img-fluid border rounded">
-                        </div>
-                    </div>
-                    <!-- Detalles del producto -->
-                    <div class="col-md-6">
-                        <h1 class="fw-bolder mb-3">
-                            <input type="text" class="form-control border-0 fs-3 fw-bold" id="nombreProducto" name="nombreProducto" value="<?php echo htmlspecialchars($producto['nombre']); ?>"required>
-                                <?php
-                                // Obtener el id_producto del URL
-                                $id_producto = isset($_GET['id_producto']) ? htmlspecialchars($_GET['id_producto']) : null;
-                                ?>
-                            <input type="hidden" name="id_producto" value="<?php echo htmlspecialchars($id_producto); ?>">
-                        </h1>
-                        <div class="fs-5 mb-4">
-                            <span class="ms-3"><input type="number" class="form-control d-inline w-auto p-0 text-center" id="precioDescuento" name="precioDescuento" placeholder="$$$" value="<?php echo htmlspecialchars($producto['precio']); ?>" required></span>
-                        </div>
-    
-                        <div class="mb-3 d-flex align-items-center">
-                            <select name="categoriaProducto" class="form-select w-auto" required>
-                                <option value="">Selecciona una categoría</option>
-                                <option value="Tecnologia" <?php echo ($producto['categoria'] == 'Tecnologia') ? 'selected' : ''; ?>>Tecnología</option>
-                                <option value="Alimentos" <?php echo ($producto['categoria'] == 'Alimentos') ? 'selected' : ''; ?>>Alimentos</option>
-                                <option value="Libros" <?php echo ($producto['categoria'] == 'Libros') ? 'selected' : ''; ?>>Libros</option>
-                                <option value="Accesorios" <?php echo ($producto['categoria'] == 'Accesorios') ? 'selected' : ''; ?>>Accesorios</option>
-                            </select>                        
-                        </div>
-    
-                        <p class="lead">
-                            <textarea class="form-control" id="descripcionProducto" name="descripcionProducto" rows="3" placeholder="Ingrese una descripción breve del producto"><?php echo htmlspecialchars($producto['descripcion']); ?></textarea>
-                        </p>
-                        
-                        <!-- Horario -->
-                        <?php
-                        // Asegúrate de que $id_producto esté definido
-                        if (!isset($id_producto)) {
-                            die("Error: id_producto no está definido.");
-                        }
-                        
-                        // Configuración de la base de datos
-                        $servername = "localhost";
-                        $username = "root";
-                        $password = "";
-                        $dbname = "escomdeals";
-                        
-                        // Crear conexión
-                        $conn = new mysqli($servername, $username, $password, $dbname);
-                        
-                        // Comprobar conexión
-                        if ($conn->connect_error) {
-                            die("Conexión fallida: " . $conn->connect_error);
-                        }
-                        
-                        // Preparar y ejecutar la consulta
-                        $query = "SELECT dia, horario FROM horario WHERE id_producto = ?";
-                        $stmt = $conn->prepare($query);
-                        if (!$stmt) {
-                            die("Error en la preparación de la consulta: " . $conn->error);
-                        }
-                        
-                        $stmt->bind_param("i", $id_producto);
-                        $stmt->execute();
-                        $result = $stmt->get_result();
-                        
-                        $horarioData = [];
-                        while ($row = $result->fetch_assoc()) {
-                            $horarioData[$row['dia']] = $row['horario'];
-                        }
-                        
-                        // Cerrar la declaración y la conexión
-                        $stmt->close();
-                        $conn->close();
-                        ?>
-                        
-                        <!-- Horario -->
-                        <div class="mb-3">
-                            <h5 class="fw-bold">Horario del Vendedor</h5>
-                            <div class="row">
-                                <!-- Columna de Días -->
-                                <div class="col-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="lunes" name="dias[]" value="lunes" <?php echo isset($horarioData['lunes']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="lunes">Lunes</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="martes" name="dias[]" value="martes" <?php echo isset($horarioData['martes']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="martes">Martes</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="miercoles" name="dias[]" value="miercoles" <?php echo isset($horarioData['miercoles']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="miercoles">Miércoles</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="jueves" name="dias[]" value="jueves" <?php echo isset($horarioData['jueves']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="jueves">Jueves</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="viernes" name="dias[]" value="viernes" <?php echo isset($horarioData['viernes']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="viernes">Viernes</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="sabado" name="dias[]" value="sabado" <?php echo isset($horarioData['sabado']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="sabado">Sábado</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="domingo" name="dias[]" value="domingo" <?php echo isset($horarioData['domingo']) ? 'checked' : ''; ?>>
-                                        <label class="form-check-label" for="domingo">Domingo</label>
-                                    </div>
-                                </div>
-                                <!-- Columna de Horas -->
-                                <div class="col-8">
-                                    <input type="text" class="form-control mb-2" id="horasLunes" name="horasLunes" placeholder="9:00 AM - 6:00 PM" value="<?php echo isset($horarioData['lunes']) ? htmlspecialchars($horarioData['lunes']) : ''; ?>" <?php echo isset($horarioData['lunes']) ? '' : 'disabled'; ?>>
-                                    <input type="text" class="form-control mb-2" id="horasMartes" name="horasMartes" placeholder="9:00 AM - 6:00 PM" value="<?php echo isset($horarioData['martes']) ? htmlspecialchars($horarioData['martes']) : ''; ?>" <?php echo isset($horarioData['martes']) ? '' : 'disabled'; ?>>
-                                    <input type="text" class="form-control mb-2" id="horasMiercoles" name="horasMiercoles" placeholder="9:00 AM - 6:00 PM" value="<?php echo isset($horarioData['miercoles']) ? htmlspecialchars($horarioData['miercoles']) : ''; ?>" <?php echo isset($horarioData['miercoles']) ? '' : 'disabled'; ?>>
-                                    <input type="text" class="form-control mb-2" id="horasJueves" name="horasJueves" placeholder="9:00 AM - 6:00 PM" value="<?php echo isset($horarioData['jueves']) ? htmlspecialchars($horarioData['jueves']) : ''; ?>" <?php echo isset($horarioData['jueves']) ? '' : 'disabled'; ?>>
-                                    <input type="text" class="form-control mb-2" id="horasViernes" name="horasViernes" placeholder="9:00 AM - 6:00 PM" value="<?php echo isset($horarioData['viernes']) ? htmlspecialchars($horarioData['viernes']) : ''; ?>" <?php echo isset($horarioData['viernes']) ? '' : 'disabled'; ?>>
-                                    <input type="text" class="form-control mb-2" id="horasSabado" name="horasSabado" placeholder="10:00 AM - 4:00 PM" value="<?php echo isset($horarioData['sabado']) ? htmlspecialchars($horarioData['sabado']) : ''; ?>" <?php echo isset($horarioData['sabado']) ? '' : 'disabled'; ?>>
-                                    <input type="text" class="form-control mb-2" id="horasDomingo" name="horasDomingo" placeholder="10:00 AM - 4:00 PM" value="<?php echo isset($horarioData['domingo']) ? htmlspecialchars($horarioData['domingo']) : ''; ?>" <?php echo isset($horarioData['domingo']) ? '' : 'disabled'; ?>>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!--Stock-->
-                        <div class="mb-3">
-                            <label for="stockProducto" class="form-label fw-bold">Stock disponible</label>
-                            <input type="number" 
-                                   class="form-control" 
-                                   id="stockProducto" 
-                                   name="stockProducto" 
-                                   min="0" 
-                                   value="<?php echo htmlspecialchars($producto['stock']); ?>"
-                                   required>
-                        </div>
-    
-                        <!-- Disponibilidad -->
-                        <div class="mb-3 d-flex align-items-center">
-                            <label for="disponibilidadProducto" class="form-label fw-bold me-3">Disponibilidad</label>
-                            <select class="form-select w-auto" id="disponibilidadProducto" name="disponibilidadProducto">
-                                <option value="1" selected>Disponible</option>
-                                <option value="0">Agotado</option>
-                            </select>
-                        </div>
-            
-                        <!-- Botones de acción -->
-                        <div class="d-flex justify-content-start gap-2 mt-4">
-                            <!-- Botón Guardar -->
-                            <a href="carrito.html"><button type="submit" class="btn btn-yellow">Añadir al carrito</button></a>
-                            <!-- Botón Cancelar -->
-                            <a href="./wishlist.html"><button type="button" class="btn btn-danger">Añadir a favoritos</button></a>
-                        </div>
+            <!-- Imagen del producto -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <img src="php/imgsVentas/<?php echo htmlspecialchars($producto['imagen_producto']); ?>" 
+                         class="card-img-top product-image" 
+                         alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
+                </div>
+            </div>
+
+            <!-- Detalles del producto -->
+            <div class="col-md-6">
+                <h1 class="mb-3"><?php echo htmlspecialchars($producto['nombre']); ?></h1>
+                
+                <div class="mb-4">
+                    <h2 class="text-primary h3">
+                        $<?php echo number_format($producto['precio'], 2); ?>
+                    </h2>
+                </div>
+
+                <div class="mb-3">
+                    <span class="badge bg-secondary">
+                        <?php echo htmlspecialchars($producto['categoria']); ?>
+                    </span>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Descripción</h5>
+                    <p><?php echo htmlspecialchars($producto['descripcion']); ?></p>
+                </div>
+
+                <!-- Horarios -->
+                <div class="mb-4">
+                    <h5>Horarios de Venta</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tbody>
+                                <?php foreach ($horarios as $dia => $horario): ?>
+                                    <tr>
+                                        <td class="fw-bold"><?php echo ucfirst($dia); ?></td>
+                                        <td><?php echo htmlspecialchars($horario); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </form>
-        <BR></BR>
-            <form>
-                <h1 class="fw-bolder mb-3">
-                    <input type="text" class="form-control border-0 fs-3 fw-bold" id="resenaProducto" name="ResenaProducto" value="Reseñas" disabled>
-                </h1>
-                <p class="lead">
-                    <textarea class="form-control" id="usuarioResena" name="usuarioResena" rows="3" placeholder="Ingrese una reseña del producto"></textarea>
-                </p>
-            </form>
-        </main>
+
+                <!-- Stock y Disponibilidad -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong>Stock disponible:</strong> 
+                            <?php echo htmlspecialchars($producto['stock']); ?> unidades
+                        </span>
+                        <span class="badge <?php echo $producto['disponibilidad'] ? 'bg-success' : 'bg-danger'; ?>">
+                            <?php echo $producto['disponibilidad'] ? 'Disponible' : 'No disponible'; ?>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <?php if (isset($_SESSION['id_usuario'])): ?>
+                    <div class="d-grid gap-2">
+                        <?php if ($producto['disponibilidad']): ?>
+                            <button class="btn btn-primary" onclick="agregarAlCarrito(<?php echo $id_producto; ?>)">
+                                Añadir al Carrito
+                            </button>
+                        <?php endif; ?>
+                        <button class="btn btn-outline-danger" onclick="agregarAFavoritos(<?php echo $id_producto; ?>)">
+                            Añadir a Favoritos
+                        </button>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-info">
+                        <a href="login.html">Inicia sesión</a> para comprar o guardar en favoritos
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Sección de Reseñas -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="mb-4">Reseñas</h2>
+
+                <!-- Formulario de reseña -->
+                <?php if (isset($_SESSION['id_usuario'])): ?>
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <form id="reviewForm">
+                                <div class="mb-3">
+                                    <label for="rating" class="form-label">Calificación</label>
+                                    <select class="form-select" id="rating" required>
+                                        <option value="5">★★★★★</option>
+                                        <option value="4">★★★★☆</option>
+                                        <option value="3">★★★☆☆</option>
+                                        <option value="2">★★☆☆☆</option>
+                                        <option value="1">★☆☆☆☆</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reviewContent" class="form-label">Tu reseña</label>
+                                    <textarea class="form-control" id="reviewContent" rows="3" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Publicar reseña</button>
+                            </form>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-info mb-4">
+                        <a href="login.html">Inicia sesión</a> para dejar una reseña
+                    </div>
+                <?php endif; ?>
+
+                <!-- Lista de reseñas -->
+                <div class="reviews-list">
+                    <?php
+                    $query_resenas = "SELECT r.*, u.alias, u.foto_perfil 
+                                     FROM resena r 
+                                     JOIN comprador c ON r.id_comprador = c.id_comprador
+                                     JOIN usuario u ON c.id_usuario = u.id_usuario
+                                     WHERE r.id_producto = ?
+                                     ORDER BY r.fecha DESC";
+                    
+                    $stmt_resenas = $conexion->prepare($query_resenas);
+                    $stmt_resenas->bind_param('i', $id_producto);
+                    $stmt_resenas->execute();
+                    $resultado_resenas = $stmt_resenas->get_result();
+
+                    if ($resultado_resenas->num_rows > 0):
+                        while ($resena = $resultado_resenas->fetch_assoc()):
+                    ?>
+                        <div class="card review-card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="php/<?php echo htmlspecialchars($resena['foto_perfil']); ?>" 
+                                         alt="Foto de perfil" 
+                                         class="rounded-circle me-2"
+                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                    <div>
+                                        <h6 class="mb-0"><?php echo htmlspecialchars($resena['alias']); ?></h6>
+                                        <small class="text-muted">
+                                            <?php echo date('d/m/Y', strtotime($resena['fecha'])); ?>
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="stars mb-2">
+                                    <?php
+                                    for ($i = 1; $i <= 5; $i++) {
+                                        echo $i <= $resena['calificacion'] ? '★' : '☆';
+                                    }
+                                    ?>
+                                </div>
+                                <p class="card-text"><?php echo htmlspecialchars($resena['comentario']); ?></p>
+                            </div>
+                        </div>
+                    <?php 
+                        endwhile;
+                    else:
+                    ?>
+                        <div class="alert alert-light text-center">
+                            No hay reseñas todavía. ¡Sé el primero en opinar!
+                        </div>
+                    <?php
+                    endif;
+                    $stmt_resenas->close();
+                    $conexion->close();
+                    ?>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <!-- Footer -->
-    <footer>
-        <div class="container-fluid">
-            <p>&copy; 2024 ESCOMDeals - Todos los derechos reservados.</p>
-            <a href="terminos.html" class="text-white">Términos y Condiciones</a> |
-            <a href="privacidad.html" class="text-white">Política de Privacidad</a>
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p>&copy; 2024 ESCOMDeals - Todos los derechos reservados</p>
+                    <div>
+                        <a href="terminos.html" class="text-white me-3">Términos y Condiciones</a>
+                        <a href="privacidad.html" class="text-white">Política de Privacidad</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Funciones para el carrito
+        function agregarAlCarrito(idProducto) {
+            fetch('php/agregar_carrito.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id_producto: idProducto
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarNotificacion('Producto añadido al carrito', 'success');
+                } else {
+                    mostrarNotificacion(data.message || 'Error al añadir al carrito', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarNotificacion('Error al procesar la solicitud', 'error');
+            });
+        }
+
+        // Funciones para favoritos
+        function agregarAFavoritos(idProducto) {
+            fetch('php/agregar_favorito.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id_producto: idProducto
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarNotificacion('Producto añadido a favoritos', 'success');
+                } else {
+                    mostrarNotificacion(data.message || 'Error al añadir a favoritos', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarNotificacion('Error al procesar la solicitud', 'error');
+            });
+        }
+
+        // Sistema de notificaciones
+        function mostrarNotificacion(mensaje, tipo) {
+            const notificacion = document.createElement('div');
+            notificacion.classList.add('notificacion', `notificacion-${tipo}`);
+            notificacion.innerHTML = mensaje;
+            document.body.appendChild(notificacion);
+
+            setTimeout(() => {
+                notificacion.classList.add('mostrar');
+            }, 100);
+
+            setTimeout(() => {
+                notificacion.classList.remove('mostrar');
+                setTimeout(() => {
+                    notificacion.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Manejo del formulario de reseñas
+        document.getElementById('reviewForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const rating = document.getElementById('rating').value;
+            const content = document.getElementById('reviewContent').value;
+            
+            fetch('php/agregar_resena.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id_producto: new URLSearchParams(window.location.search).get('id_producto'),
+                    calificacion: rating,
+                    comentario: content
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarNotificacion('Reseña publicada con éxito', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    mostrarNotificacion(data.message || 'Error al publicar la reseña', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarNotificacion('Error al procesar la solicitud', 'error');
+            });
+        });
+
+        // Estilos CSS para las notificaciones
+        const styles = `
+        .notificacion {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 4px;
+            color: white;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notificacion.mostrar {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notificacion-success {
+            background-color: #28a745;
+        }
+
+        .notificacion-error {
+            background-color: #dc3545;
+        }
+        `;
+
+        // Agregar los estilos al documento
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
+    </script>
 </body>
 </html>
