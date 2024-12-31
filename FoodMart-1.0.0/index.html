@@ -20,7 +20,7 @@ if ($conn->connect_error) {
 }
 
 // Consulta para obtener las publicaciones
-$sql = "SELECT * FROM producto";
+$sql = "SELECT * FROM producto WHERE stock > 0";
 $result = $conn->query($sql);
 
 // Verifica si hay resultados
