@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // Manejar la subida de la imagen
-        $imagen_producto = null; // Inicializa la variable
+        $imagen_producto = null;
 
         // Obtener la imagen existente del producto desde la base de datos
         if ($id_producto) {
@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $result = $stmt->get_result();
             if ($result->num_rows > 0) {
                 $row = $result->fetch_assoc();
-                $imagen_producto = $row['imagen_producto']; // Asignar la imagen existente
+                $imagen_producto = $row['imagen_producto'];
             }
         }
 
@@ -102,25 +102,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("Error al actualizar producto: " . $stmt->error);
         }
 
-        // Actualizar horarios en la tabla `horario`
-        if (isset($_POST['dias']) && is_array($_POST['dias'])) {
-            foreach ($_POST['dias'] as $dia) {
+        // Manejo de horarios
+        // Obtener días previamente seleccionados desde la base de datos
+        $prevDias = [];
+        $stmt = $conn->prepare("SELECT dia FROM horario WHERE id_producto = ?");
+        $stmt->bind_param("i", $id_producto);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $prevDias[] = $row['dia'];
+        }
+
+        // Obtener días enviados desde el formulario
+        $newDias = isset($_POST['dias']) && is_array($_POST['dias']) ? $_POST['dias'] : [];
+
+        // Encontrar días que se desmarcaron
+        $diasDesmarcados = array_diff($prevDias, $newDias);
+
+        // Eliminar días desmarcados de la base de datos
+        foreach ($diasDesmarcados as $dia) {
+            $stmt = $conn->prepare("DELETE FROM horario WHERE id_producto = ? AND dia = ?");
+            $stmt->bind_param("is", $id_producto, $dia);
+            $stmt->execute();
+        }
+
+        // Procesar días enviados para actualizar o insertar horarios
+        if (!empty($newDias)) {
+            foreach ($newDias as $dia) {
                 $horario = $_POST["horas" . ucfirst($dia)] ?? null;
 
-                // Debug: Imprimir el id_producto y el horario
-                error_log("id_producto: $id_producto, dia: $dia, horario: $horario");
-
                 if (!empty($horario)) {
-                    // Actualizar el horario solo si existe
-                    $stmt = $conn->prepare("UPDATE horario SET horario = ? WHERE id_producto = ? AND dia = ?");
-                    $stmt->bind_param("sis", $horario, $id_producto, $dia);
+                    // Verificar si el registro ya existe
+                    $stmt = $conn->prepare("SELECT 1 FROM horario WHERE id_producto = ? AND dia = ?");
+                    $stmt->bind_param("is", $id_producto, $dia);
                     $stmt->execute();
+                    $result = $stmt->get_result();
 
-                    if ($stmt->affected_rows === 0) {
-                        // Si no se actualizó nada, significa que no hay registro existente
-                        // Aquí puedes decidir si quieres hacer algo al respecto, como dejar un mensaje
-                        error_log("No se encontró horario para id_producto: $id_producto, dia: $dia");
+                    if ($result->num_rows > 0) {
+                        // Actualizar el registro si ya existe
+                        $stmt = $conn->prepare("UPDATE horario SET horario = ? WHERE id_producto = ? AND dia = ?");
+                        $stmt->bind_param("sis", $horario, $id_producto, $dia);
+                    } else {
+                        // Insertar un nuevo registro si no existe
+                        $stmt = $conn->prepare("INSERT INTO horario (id_producto, dia, horario) VALUES (?, ?, ?)");
+                        $stmt->bind_param("iss", $id_producto, $dia, $horario);
                     }
+                    $stmt->execute();
                 }
             }
         }
