@@ -102,24 +102,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("Error al actualizar producto: " . $stmt->error);
         }
 
-        // Insertar o actualizar horarios en la tabla `horario`
+        // Actualizar horarios en la tabla `horario`
         if (isset($_POST['dias']) && is_array($_POST['dias'])) {
             foreach ($_POST['dias'] as $dia) {
                 $horario = $_POST["horas" . ucfirst($dia)] ?? null;
 
+                // Debug: Imprimir el id_producto y el horario
+                error_log("id_producto: $id_producto, dia: $dia, horario: $horario");
+
                 if (!empty($horario)) {
-                    // Intentar actualizar el horario
+                    // Actualizar el horario solo si existe
                     $stmt = $conn->prepare("UPDATE horario SET horario = ? WHERE id_producto = ? AND dia = ?");
                     $stmt->bind_param("sis", $horario, $id_producto, $dia);
+                    $stmt->execute();
 
-                    if (!$stmt->execute() || $stmt->affected_rows === 0) {
-                        // Si no se actualizó, insertar nuevo horario
-                        $stmt = $conn->prepare("INSERT INTO horario (id_producto, dia, horario) VALUES (?, ?, ?)");
-                        $stmt->bind_param("iss", $id_producto, $dia, $horario);
-
-                        if (!$stmt->execute()) {
-                            throw new Exception("Error al insertar horario: " . $stmt->error);
-                        }
+                    if ($stmt->affected_rows === 0) {
+                        // Si no se actualizó nada, significa que no hay registro existente
+                        // Aquí puedes decidir si quieres hacer algo al respecto, como dejar un mensaje
+                        error_log("No se encontró horario para id_producto: $id_producto, dia: $dia");
                     }
                 }
             }
