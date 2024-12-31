@@ -40,6 +40,15 @@ CREATE TABLE producto (
     FOREIGN KEY (id_vendedor) REFERENCES vendedor(id_vendedor) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+--Crear tabla para el horario de los productos
+CREATE TABLE horario(
+    id_horario int AUTO_INCREMENT PRIMARY KEY,
+    id_producto int,
+    dia varchar(50),
+    horario varchar(50),
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
+);
+
 -- Crear tabla de pedidos (relacionando compradores y vendedores)
 CREATE TABLE pedido (
     id_pedido INT AUTO_INCREMENT PRIMARY KEY,

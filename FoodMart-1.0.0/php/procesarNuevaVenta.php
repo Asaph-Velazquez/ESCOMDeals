@@ -98,6 +98,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("Error: " . $stmt->error);
         }
 
+        $id_producto = $conn->insert_id; // Obtener el ID del producto insertado
+
+        // Insertar horarios en la tabla `horario`
+        if (isset($_POST['dias']) && is_array($_POST['dias'])) {
+            foreach ($_POST['dias'] as $dia) {
+                $horario = $_POST["horas" . ucfirst($dia)] ?? null;
+                if (!empty($horario)) {
+                    $stmt = $conn->prepare("INSERT INTO horario (id_producto, dia, horario) VALUES (?, ?, ?)");
+                    $stmt->bind_param("iss", $id_producto, $dia, $horario);
+
+                    if (!$stmt->execute()) {
+                        throw new Exception("Error al insertar horario: " . $stmt->error);
+                    }
+                }
+            }
+        }
+
         // Confirmar transacción
         $conn->commit();
 
