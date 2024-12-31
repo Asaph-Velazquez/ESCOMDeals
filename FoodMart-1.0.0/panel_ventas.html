@@ -133,7 +133,7 @@ $productos = $stmt->get_result();
                             <button class="btn btn-danger" onclick="eliminarProducto(<?= $producto['id_producto'] ?>)">Eliminar</button>
                             <button class="btn <?= $producto['disponibilidad'] ? 'btn-success' : 'btn-secondary' ?>" onclick="toggleDisponibilidad(<?= $producto['id_producto'] ?>)">
                                 <?= $producto['disponibilidad'] ? 'Disponible' : 'No Disponible' ?>
-                            </button>
+                            </button>                            
                         </div>
                     </div>
                 </div>
@@ -169,16 +169,16 @@ $productos = $stmt->get_result();
 
     
     function toggleDisponibilidad(id_producto) {
-        fetch(`toggle_disponibilidad.php?id_producto=${id_producto}`, { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.message);
-                }
-            });
-    }
+    fetch(`php/toogleDisponibilidad.php?id_producto=${id_producto}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Recargar la página para reflejar los cambios
+            } else {
+                alert(data.message);
+            }
+        });
+}
     </script>
 
     <!-- Footer -->
