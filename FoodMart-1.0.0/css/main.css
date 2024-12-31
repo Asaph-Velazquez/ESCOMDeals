@@ -1,0 +1,29 @@
+
+.product-card {
+overflow: hidden;
+border: none;
+}
+
+.product-image {
+transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image {
+transform: scale(1.1); /* Efecto de zoom */
+}
+
+.product-info-overlay {
+background-color: rgba(0, 0, 0, 0.7);
+color: white;
+top: 0;
+left: 0;
+opacity: 0;
+transition: opacity 0.3s ease;
+visibility: hidden;
+z-index: 10;
+}
+
+.product-card:hover .product-info-overlay {
+opacity: 1;
+visibility: visible;
+}
