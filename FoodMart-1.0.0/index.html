@@ -56,6 +56,32 @@ if ($result->num_rows > 0) {
     <link rel="stylesheet" href="../FoodMart-1.0.0/css/los_chidos/sesion.css">
 
     <script>
+        // Función para previsualizar la imagen
+        function previewImage(input) {
+            const preview = input.nextElementSibling; // La imagen está justo después del input
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.src = "https://dummyimage.com/600x700/dee2e6/6c757d.jpg";
+            }
+        }
+    
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar la previsualización de imagen
+            const imageInput = document.getElementById('imagenProducto');
+            imageInput.addEventListener('change', function() {
+                previewImage(this);
+            }); 
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             const myCarousel = document.getElementById('CaruselDestacados');
             const carousel = new bootstrap.Carousel(myCarousel, {
@@ -64,7 +90,7 @@ if ($result->num_rows > 0) {
                 wrap: true
             });
         });
-    </script>
+        </script>
 </head>
 <body>
     <!-- Header -->
@@ -218,7 +244,9 @@ if ($result->num_rows > 0) {
                                     <p class="card-text text-white">$<?php echo htmlspecialchars(number_format($producto['precio'], 2)); ?></p>
                                     <p class="card-text text-white small"><?php echo htmlspecialchars($producto['descripcion']); ?></p>
                                     <div class="d-flex gap-2 mt-2">
-                                        <button class="btn btn-secondary">Detalles</button>
+                                        <a href="detalles.html?id_producto=<?php echo htmlspecialchars($producto['id_producto']); ?>">
+                                            <button class="btn btn-secondary">Detalles</button>
+                                        </a>
                                         <button class="btn btn-secondary">Agregar a Favoritos</button>
                                     </div>
                                     <br>
