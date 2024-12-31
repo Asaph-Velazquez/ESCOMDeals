@@ -241,14 +241,20 @@
                 <!-- Detalles del producto -->
                 <div class="col-md-6">
                     <h1 class="fw-bolder mb-3">
-                        <input type="text" class="form-control border-0 fs-3 fw-bold" id="nombreProducto" name="nombreProducto" placeholder="Ingrese el nombre del producto">
+                        <input type="text" class="form-control border-0 fs-3 fw-bold" id="nombreProducto" name="nombreProducto" placeholder="Ingrese el nombre del producto" required>
                     </h1>
                     <div class="fs-5 mb-4">
                         <span class="ms-3">$<input type="number" class="form-control d-inline w-auto p-0 text-center" id="precioDescuento" name="precioDescuento" placeholder="40.00"></span>
                     </div>
 
                     <div class="mb-3 d-flex align-items-center">
-                        <input type="text" class="form-control mb-2" id="categoriaProducto" name="categoriaProducto" placeholder="Categoria">
+                        <select name="categoriaProducto" class="form-select w-auto" required>
+                            <option value="">Selecciona una categoría</option>
+                            <option value="Tecnologia">Tecnología</option>
+                            <option value="Alimentos">Alimentos</option>
+                            <option value="Libros">Libros</option>
+                            <option value="Accesorios">Accesorios</option>
+                        </select>
                     </div>
 
                     <p class="lead">
@@ -318,8 +324,8 @@
                     <div class="mb-3 d-flex align-items-center">
                         <label for="disponibilidadProducto" class="form-label fw-bold me-3">Disponibilidad</label>
                         <select class="form-select w-auto" id="disponibilidadProducto" name="disponibilidadProducto">
-                            <option value="disponible" selected>Disponible</option>
-                            <option value="agotado">Agotado</option>
+                            <option value="1" selected>Disponible</option>
+                            <option value="0">Agotado</option>
                         </select>
                     </div>
         

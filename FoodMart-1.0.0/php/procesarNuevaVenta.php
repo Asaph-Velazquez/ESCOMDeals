@@ -48,8 +48,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $nombre = htmlspecialchars($_POST['nombreProducto']);
         $precio = filter_var($_POST['precioDescuento'], FILTER_VALIDATE_FLOAT);
         $descripcion = htmlspecialchars($_POST['descripcionProducto']);
-        $stock = ($_POST['disponibilidadProducto'] === 'disponible') ? 1 : 0;
+        $stock = ($_POST['stockProducto']);
+        $disponible = htmlspecialchars($_POST['disponibilidadProducto']);
         $categoria = htmlspecialchars($_POST['categoriaProducto'] ?? '');
+
+        if (empty($categoria)) {
+            echo json_encode(['success' => false, 'message' => 'Error: Seleccione una categoría válida.']);
+            exit();
+        }
 
         // Validar datos
         if (empty($nombre) || $precio === false || $precio <= 0) {
@@ -85,8 +91,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $conn->begin_transaction();
 
         // Insertar producto
-        $stmt = $conn->prepare("INSERT INTO producto (nombre, descripcion, precio, stock, categoria, imagen_producto, id_vendedor) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssdiisi", $nombre, $descripcion, $precio, $stock, $categoria, $imagen_producto, $id_vendedor);
+        $stmt = $conn->prepare("INSERT INTO producto (nombre, descripcion, precio, stock, categoria, imagen_producto, disponibilidad, id_vendedor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssdisssi", $nombre, $descripcion, $precio, $stock, $categoria, $imagen_producto, $disponible, $id_vendedor);
 
         if (!$stmt->execute()) {
             throw new Exception("Error: " . $stmt->error);
