@@ -144,27 +144,32 @@ $productos = $stmt->get_result();
     </main>
     
     <script>
-    function editarProducto(idProducto) {
-        window.location.href = `editar_producto.php?id_producto=${idProducto}`;
+    function editarProducto(id_producto) {
+        window.location.href = `editar_producto.php?id_producto=${id_producto}`;
     }
-    
-    function eliminarProducto(idProducto) {
+
+    function eliminarProducto(id_producto) {
         if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-            fetch(`eliminar_producto.php?id_producto=${idProducto}`, { method: 'POST' })
+            fetch(`php/eliminarProducto.php?id_producto=${id_producto}`, { method: 'POST' })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Producto eliminado.');
-                        location.reload();
+                        alert(data.message);
+                        location.reload(); // Recargar la página para reflejar los cambios
                     } else {
                         alert(data.message);
                     }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al intentar eliminar el producto.');
                 });
         }
     }
+
     
-    function toggleDisponibilidad(idProducto) {
-        fetch(`toggle_disponibilidad.php?id_producto=${idProducto}`, { method: 'POST' })
+    function toggleDisponibilidad(id_producto) {
+        fetch(`toggle_disponibilidad.php?id_producto=${id_producto}`, { method: 'POST' })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
