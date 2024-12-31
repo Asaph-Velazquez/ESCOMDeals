@@ -1,6 +1,5 @@
 <?php session_start(); // Inicia la sesión para verificar si el usuario ha iniciado sesión ?>
 <?php
-
 // Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: login.html");
@@ -45,26 +44,8 @@ if ($resultado->num_rows > 0) {
     die('Producto no encontrado');
 }
 
-// Ejemplo de eliminar el producto (si es necesario)
-$delete_query = "DELETE FROM horario WHERE id_producto = ?";
-$delete_stmt = $conexion->prepare($delete_query);
-
-// Verifica si la preparación de la declaración fue exitosa
-if ($delete_stmt === false) {
-    die("Error en la preparación de la declaración para eliminar: " . $conexion->error);
-}
-
-// Vincula el parámetro y ejecuta la eliminación
-$delete_stmt->bind_param('i', $id_producto);
-$delete_stmt->execute();
-
-if ($delete_stmt->affected_rows > 0) {
-    echo "Producto eliminado correctamente.";
-}
-
 // Cierra las conexiones
 $stmt->close();
-$delete_stmt->close();
 $conexion->close();
 ?>
 
@@ -297,7 +278,7 @@ $conexion->close();
     </header>
 
     <main class="container my-5">
-        <form action="./php/procesarNuevaVenta.php" method="POST" enctype="multipart/form-data">
+        <form action="./php/procesarEditarVenta.php" method="POST" enctype="multipart/form-data">
             <div class="row gx-4 gx-lg-5 align-items-center">
                 <!-- Imagen del producto -->
                 <div class="col-md-6">
@@ -329,6 +310,49 @@ $conexion->close();
                     <p class="lead">
                         <textarea class="form-control" id="descripcionProducto" name="descripcionProducto" rows="3" placeholder="Ingrese una descripción breve del producto"><?php echo htmlspecialchars($producto['descripcion']); ?></textarea>
                     </p>
+                    
+                    <!-- Horario -->
+                    <?php
+                    // Asegúrate de que $id_producto esté definido
+                    if (!isset($id_producto)) {
+                        die("Error: id_producto no está definido.");
+                    }
+                    
+                    // Configuración de la base de datos
+                    $servername = "localhost";
+                    $username = "root";
+                    $password = "";
+                    $dbname = "escomdeals";
+                    
+                    // Crear conexión
+                    $conn = new mysqli($servername, $username, $password, $dbname);
+                    
+                    // Comprobar conexión
+                    if ($conn->connect_error) {
+                        die("Conexión fallida: " . $conn->connect_error);
+                    }
+                    
+                    // Preparar y ejecutar la consulta
+                    $query = "SELECT dia, horario FROM horario WHERE id_producto = ?";
+                    $stmt = $conn->prepare($query);
+                    if (!$stmt) {
+                        die("Error en la preparación de la consulta: " . $conn->error);
+                    }
+                    
+                    $stmt->bind_param("i", $id_producto);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    
+                    $horarioData = [];
+                    while ($row = $result->fetch_assoc()) {
+                        $horarioData[$row['dia']] = $row['horario'];
+                    }
+                    
+                    // Cerrar la declaración y la conexión
+                    $stmt->close();
+                    $conn->close();
+                    ?>
+                    
                     <!-- Horario -->
                     <div class="mb-3">
                         <h5 class="fw-bold">Horario del Vendedor</h5>
@@ -336,43 +360,43 @@ $conexion->close();
                             <!-- Columna de Días -->
                             <div class="col-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="lunes" name="dias[]" value="lunes">
+                                    <input class="form-check-input" type="checkbox" id="lunes" name="dias[]" value="lunes" <?php echo isset($horarioData['lunes']) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="lunes">Lunes</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="martes" name="dias[]" value="martes">
+                                    <input class="form-check-input" type="checkbox" id="martes" name="dias[]" value="martes" <?php echo isset($horarioData['martes']) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="martes">Martes</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="miercoles" name="dias[]" value="miercoles">
+                                    <input class="form-check-input" type="checkbox" id="miercoles" name="dias[]" value="miercoles" <?php echo isset($horarioData['miercoles']) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="miercoles">Miércoles</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="jueves" name="dias[]" value="jueves">
+                                    <input class="form-check-input" type="checkbox" id="jueves" name="dias[]" value="jueves" <?php echo isset($horarioData['jueves']) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="jueves">Jueves</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="viernes" name="dias[]" value="viernes">
+                                    <input class="form-check-input" type="checkbox" id="viernes" name="dias[]" value="viernes" <?php echo isset($horarioData['viernes']) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="viernes">Viernes</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="sabado" name="dias[]" value="sabado">
+                                    <input class="form-check-input" type="checkbox" id="sabado" name="dias[]" value="sabado" <?php echo isset($horarioData['sabado']) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="sabado">Sábado</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="domingo" name="dias[]" value="domingo">
+                                    <input class="form-check-input" type="checkbox" id="domingo" name="dias[]" value="domingo" <?php echo isset($horarioData['domingo']) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="domingo">Domingo</label>
                                 </div>
                             </div>
                             <!-- Columna de Horas -->
                             <div class="col-8">
-                                <input type="text" class="form-control mb-2" id="horasLunes" name="horasLunes" placeholder="9:00 AM - 6:00 PM" disabled>
-                                <input type="text" class="form-control mb-2" id="horasMartes" name="horasMartes" placeholder="9:00 AM - 6:00 PM" disabled>
-                                <input type="text" class="form-control mb-2" id="horasMiercoles" name="horasMiercoles" placeholder="9:00 AM - 6:00 PM" disabled>
-                                <input type="text" class="form-control mb-2" id="horasJueves" name="horasJueves" placeholder="9:00 AM - 6:00 PM" disabled>
-                                <input type="text" class="form-control mb-2" id="horasViernes" name="horasViernes" placeholder="9:00 AM - 6:00 PM" disabled>
-                                <input type="text" class="form-control mb-2" id="horasSabado" name="horasSabado" placeholder="10:00 AM - 4:00 PM" disabled>
-                                <input type="text" class="form-control mb-2" id="horasDomingo" name="horasDomingo" placeholder="10:00 AM - 4:00 PM" disabled>
+                                <input type="text" class="form-control mb-2" id="horasLunes" name="horasLunes" placeholder="9:00 AM - 6:00 PM" value="<?php echo isset($horarioData['lunes']) ? htmlspecialchars($horarioData['lunes']) : ''; ?>" <?php echo isset($horarioData['lunes']) ? '' : 'disabled'; ?>>
+                                <input type="text" class="form-control mb-2" id="horasMartes" name="horasMartes" placeholder="9:00 AM - 6:00 PM" value="<?php echo isset($horarioData['martes']) ? htmlspecialchars($horarioData['martes']) : ''; ?>" <?php echo isset($horarioData['martes']) ? '' : 'disabled'; ?>>
+                                <input type="text" class="form-control mb-2" id="horasMiercoles" name="horasMiercoles" placeholder="9:00 AM - 6:00 PM" value="<?php echo isset($horarioData['miercoles']) ? htmlspecialchars($horarioData['miercoles']) : ''; ?>" <?php echo isset($horarioData['miercoles']) ? '' : 'disabled'; ?>>
+                                <input type="text" class="form-control mb-2" id="horasJueves" name="horasJueves" placeholder="9:00 AM - 6:00 PM" value="<?php echo isset($horarioData['jueves']) ? htmlspecialchars($horarioData['jueves']) : ''; ?>" <?php echo isset($horarioData['jueves']) ? '' : 'disabled'; ?>>
+                                <input type="text" class="form-control mb-2" id="horasViernes" name="horasViernes" placeholder="9:00 AM - 6:00 PM" value="<?php echo isset($horarioData['viernes']) ? htmlspecialchars($horarioData['viernes']) : ''; ?>" <?php echo isset($horarioData['viernes']) ? '' : 'disabled'; ?>>
+                                <input type="text" class="form-control mb-2" id="horasSabado" name="horasSabado" placeholder="10:00 AM - 4:00 PM" value="<?php echo isset($horarioData['sabado']) ? htmlspecialchars($horarioData['sabado']) : ''; ?>" <?php echo isset($horarioData['sabado']) ? '' : 'disabled'; ?>>
+                                <input type="text" class="form-control mb-2" id="horasDomingo" name="horasDomingo" placeholder="10:00 AM - 4:00 PM" value="<?php echo isset($horarioData['domingo']) ? htmlspecialchars($horarioData['domingo']) : ''; ?>" <?php echo isset($horarioData['domingo']) ? '' : 'disabled'; ?>>
                             </div>
                         </div>
                     </div>
