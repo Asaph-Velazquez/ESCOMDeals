@@ -2,7 +2,7 @@
 session_start();
 // Verificar si el usuario ha iniciado sesión
 if (!isset($_SESSION['id_usuario'])) {
-    header("Location: ../login.html");
+    echo json_encode(['success' => false, 'message' => 'Error: No has iniciado sesión.']);
     exit();
 }
 
@@ -29,17 +29,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     try {
         // Crear conexión
-        $conn = new mysqli($servername, $username, $password, $dbname);
+        $conn = mysqli_connect($servername, $username, $password, $dbname);
 
         // Verificar la conexión
         if ($conn->connect_error) {
-            throw new Exception("Conexión fallida: " . $conn->connect_error);
+            echo json_encode(['success' => false, 'message' => 'Error: Conexión fallida.']);
+            exit();
         }
 
         // Verificar si el usuario es vendedor
         $id_vendedor = esVendedor($conn, $_SESSION['id_usuario']);
         if (!$id_vendedor) {
-            throw new Exception("Usuario no autorizado para crear productos");
+            echo json_encode(['success' => false, 'message' => 'Error: Usuario no autorizado para crear productos.']);
+            exit();
         }
 
         // Recoger y sanitizar datos del formulario
@@ -50,8 +52,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $categoria = htmlspecialchars($_POST['categoriaProducto'] ?? '');
 
         // Validar datos
-        if (empty($nombre) || $precio <= 0) {
-            throw new Exception("Datos del producto inválidos");
+        if (empty($nombre) || $precio === false || $precio <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Error: Datos del producto inválidos.']);
+            exit();
         }
 
         // Manejar la subida de la imagen
@@ -62,15 +65,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
             
             if (!in_array($ext, $allowed)) {
-                throw new Exception("Tipo de archivo no permitido");
+                echo json_encode(['success' => false, 'message' => 'Error: Tipo de archivo no permitido.']);
+                exit();
             }
 
-            $targetDirectory = "../imgsVentas/";
+            $targetDirectory = "imgsVentas/";
             $newFilename = uniqid() . "." . $ext;
             $targetFile = $targetDirectory . $newFilename;
 
             if (!move_uploaded_file($_FILES['imagenProducto']['tmp_name'], $targetFile)) {
-                throw new Exception("Error al subir la imagen");
+                echo json_encode(['success' => false, 'message' => 'Error: Error al subir la imagen.']);
+                exit();
             }
 
             $imagen_producto = $newFilename;
@@ -84,30 +89,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("ssdiisi", $nombre, $descripcion, $precio, $stock, $categoria, $imagen_producto, $id_vendedor);
 
         if (!$stmt->execute()) {
-            throw new Exception("Error al crear el producto: " . $stmt->error);
+            throw new Exception("Error: " . $stmt->error);
         }
-
-        $id_producto = $stmt->insert_id;
-
-        // Si tienes una tabla específica para horarios, aquí iría el código para guardarlos
-        // Por ahora, comento esta parte ya que no está en tu esquema de base de datos
-        /*
-        $dias = $_POST['dias'] ?? [];
-        foreach ($dias as $dia) {
-            $horas = $_POST['horas' . ucfirst($dia)] ?? '';
-            if (!empty($horas)) {
-                $stmtHoras = $conn->prepare("INSERT INTO horarios (id_producto, dia, horas) VALUES (?, ?, ?)");
-                $stmtHoras->bind_param("iss", $id_producto, $dia, $horas);
-                $stmtHoras->execute();
-            }
-        }
-        */
 
         // Confirmar transacción
         $conn->commit();
 
-        // Redireccionar al panel de ventas
-        header("Location: ../panel_ventas.html?success=true");
+        // Retornar éxito
+        echo json_encode(['success' => true, 'message' => 'Producto creado exitosamente.']);
         exit();
 
     } catch (Exception $e) {
@@ -121,7 +110,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             unlink($targetFile);
         }
 
-        header("Location: ../panel_ventas.html?error=" . urlencode($e->getMessage()));
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         exit();
     } finally {
         // Cerrar la conexión
@@ -129,7 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (isset($conn)) $conn->close();
     }
 } else {
-    header("Location: ../panel_ventas.html?error=metodo_no_permitido");
+    echo json_encode(['success' => false, 'message' => 'Error: Método no permitido.']);
     exit();
 }
 ?>
