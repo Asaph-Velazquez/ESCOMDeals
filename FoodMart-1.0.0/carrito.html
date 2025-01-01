@@ -131,11 +131,13 @@ $result = $stmt->get_result();
                                     <td>{$item['nombre']}</td>
                                     <td>\${$item['precio']}</td>
                                     <td>
-                                        <form action='php/actualizar_cantidad.php' method='POST'>
-                                            <input type='number' name='quantity' value='{$item['cantidad']}' min='1'>
-                                            <input type='hidden' name='product_id' value='{$item['id_producto']}'>
-                                            <button type='submit' class='btn btn-secondary btn-sm'>Actualizar</button>
-                                        </form>
+                                        <input type='number' 
+                                               name='quantity' 
+                                               value='{$item['cantidad']}' 
+                                               min='1'
+                                               data-product-id='{$item['id_producto']}' 
+                                               class='form-control cantidad' 
+                                               onchange='actualizarCantidad(this)'>
                                     </td>
                                     <td>\${$subtotal}</td>
                                     <td>
@@ -191,6 +193,43 @@ $result = $stmt->get_result();
     
             return false;  // Prevenir el envío del formulario porque la redirección se maneja aquí
         }
+        function actualizarCantidad(input) {
+        const cantidad = input.value;
+        const productId = input.getAttribute('data-product-id');
+
+        // Verificar que la cantidad sea válida
+        if (cantidad < 1) {
+            alert('La cantidad debe ser al menos 1.');
+            input.value = 1;  // Restablecer a 1
+            return;
+        }
+
+        // Crear los datos a enviar
+        const data = new FormData();
+        data.append('quantity', cantidad);
+        data.append('product_id', productId);
+
+        // Enviar los datos con AJAX
+        fetch('php/actualizar_cantidad.php', {
+            method: 'POST',
+            body: data
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('Cantidad actualizada');
+                // Aquí puedes realizar alguna acción adicional si es necesario
+            } else {
+                alert(result.message);
+                input.value = result.previous_quantity; // Restaurar cantidad anterior
+                
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al actualizar la cantidad');
+        });
+    }
     </script>
     <!-- Footer -->
     <footer>

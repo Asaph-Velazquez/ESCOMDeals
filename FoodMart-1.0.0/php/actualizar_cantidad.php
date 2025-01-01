@@ -3,7 +3,7 @@ session_start();
 
 // Verificar que el usuario esté logueado
 if (!isset($_SESSION['id_usuario'])) {
-    echo "<script>alert('Por favor, inicia sesión para modificar tu carrito.'); window.location.href = 'login.html';</script>";
+    echo json_encode(['success' => false, 'message' => 'Por favor, inicia sesión para modificar tu carrito.']);
     exit();
 }
 
@@ -20,7 +20,7 @@ if (isset($_POST['quantity']) && isset($_POST['product_id'])) {
 
     // Validar la cantidad
     if ($quantity < 1) {
-        echo "<script>alert('La cantidad debe ser al menos 1.'); window.history.back();</script>";
+        echo json_encode(['success' => false, 'message' => 'La cantidad debe ser al menos 1.']);
         exit();
     }
 
@@ -35,7 +35,12 @@ if (isset($_POST['quantity']) && isset($_POST['product_id'])) {
 
     // Verificar si la cantidad solicitada es mayor que el stock disponible
     if ($quantity > $stock) {
-        echo "<script>alert('La cantidad solicitada excede el stock disponible. Solo hay $stock unidades disponibles.'); window.history.back();</script>";
+        echo json_encode([
+            'success' => false,
+            'message' => "La cantidad solicitada excede el stock disponible. Solo hay $stock unidades disponibles.",
+            'previous_quantity' => $quantity // Enviar la cantidad previa para restaurar
+           
+        ]);
         exit();
     }
 
@@ -45,15 +50,17 @@ if (isset($_POST['quantity']) && isset($_POST['product_id'])) {
     $stmt->bind_param("iii", $quantity, $product_id, $id_usuario);
 
     if ($stmt->execute()) {
-        // Redirigir al carrito.html después de actualizar
-        echo "<script>alert('Cantidad actualizada con éxito.'); window.location.href = '../carrito.html';</script>";
+        // Responder éxito
+        echo json_encode(['success' => true, 'message' => 'Cantidad actualizada con éxito']);
     } else {
-        echo "<script>alert('Error al actualizar la cantidad. Intenta nuevamente.'); window.location.href = '../carrito.html';</script>";
+        echo json_encode(['success' => false, 'message' => 'Error al actualizar la cantidad. Intenta nuevamente.']);
+   
     }
 
     $stmt->close();
 } else {
-    echo "<script>alert('Datos no válidos.'); window.location.href = '../carrito.html';</script>";
+    echo json_encode(['success' => false, 'message' => 'Datos no válidos.']);
+   
 }
 
 // Cerrar la conexión
