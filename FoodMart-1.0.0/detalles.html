@@ -216,21 +216,28 @@ $stmt_horario->close();
 
                 <!-- Botones de acción -->
                 <?php if (isset($_SESSION['id_usuario'])): ?>
-                    <div class="d-grid gap-2">
-                        <?php if ($producto['disponibilidad']): ?>
-                            <button class="btn btn-primary" onclick="agregarAlCarrito(<?php echo $id_producto; ?>)">
+                <div>
+                    <?php if ($producto['disponibilidad']): ?>
+                        <form action="php/añadir_carrito.php" method="POST" style="display:inline;">
+                            <input type="hidden" name="id_producto" value="<?php echo htmlspecialchars($producto['id_producto']); ?>">
+                            <button type="submit" class="btn btn-primary">
                                 Añadir al Carrito
                             </button>
-                        <?php endif; ?>
-                        <button class="btn btn-outline-danger" onclick="agregarAFavoritos(<?php echo $id_producto; ?>)">
+                        </form>
+                    <?php endif; ?>
+                    <form action="php/añadir_favorito.php" method="POST" style="display:inline;">
+                        <input type="hidden" name="id_producto" value="<?php echo htmlspecialchars($producto['id_producto']); ?>">
+                        <button type="submit" class="btn btn-outline-danger">
                             Añadir a Favoritos
                         </button>
-                    </div>
-                <?php else: ?>
-                    <div class="alert alert-info">
-                        <a href="login.html">Inicia sesión</a> para comprar o guardar en favoritos
-                    </div>
-                <?php endif; ?>
+                    </form>
+                </div>
+            <?php else: ?>
+                <div class="alert alert-info">
+                    <a href="login.html">Inicia sesión</a> para comprar o guardar en favoritos
+                </div>
+            <?php endif; ?>
+            
             </div>
         </div>
 

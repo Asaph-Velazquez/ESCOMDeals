@@ -105,7 +105,14 @@ CREATE TABLE notificacion (
 CREATE TABLE carrito (
     id_usuario INT NOT NULL,
     id_producto INT NOT NULL,
-    cantidad INT NOT NULL CHECK (cantidad > 0), -- La cantidad debe ser al menos 1
+    PRIMARY KEY (id_usuario, id_producto),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE favoritos (
+    id_usuario INT NOT NULL,
+    id_producto INT NOT NULL,
     PRIMARY KEY (id_usuario, id_producto),
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON DELETE CASCADE ON UPDATE CASCADE
