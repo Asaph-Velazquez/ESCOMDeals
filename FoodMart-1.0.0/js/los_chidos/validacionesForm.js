@@ -119,6 +119,35 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // Lógica para alternar visibilidad de la contraseña
+    const togglePassword = document.getElementById('togglePassword');
+    const password = document.getElementById('contraseña');
+    
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const confirmPassword = document.getElementById('confirmarContraseña');
+
+    if (togglePassword && password) {
+        togglePassword.addEventListener('click', function () {
+            const type = password.type === 'password' ? 'text' : 'password';
+            password.type = type;
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    }
+
+    if (toggleConfirmPassword && confirmPassword) {
+        toggleConfirmPassword.addEventListener('click', function () {
+            const type = confirmPassword.type === 'password' ? 'text' : 'password';
+            confirmPassword.type = type;
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    }
 });
+
+
+
+
 
 
