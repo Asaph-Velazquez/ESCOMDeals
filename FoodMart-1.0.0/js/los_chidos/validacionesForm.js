@@ -26,12 +26,10 @@ const validaciones = {
     contraseña: {
         regex: /^.{8,}$/,
         mensaje: "La contraseña debe tener al menos 8 caracteres"
-    },
-
+    }
 };
 
 function validarCampo(campo) {
-    // Ignorar validación para campos ocultos o de tipo archivo
     if (campo.type === 'file' || !campo.offsetParent || campo.style.display === 'none') {
         return true;
     }
@@ -41,7 +39,7 @@ function validarCampo(campo) {
     const validacion = validaciones[tipo];
 
     if (!validacion) {
-        return true; // Si no hay validación definida, el campo es válido
+        return true; 
     }
 
     const esValido = validacion.regex.test(valor);
@@ -59,26 +57,46 @@ function validarCampo(campo) {
     return esValido;
 }
 
-function validarFormulario(event) {
-    event.preventDefault(); // Bloquea el envío tradicional del formulario
+function validarConfirmacionContraseña() {
+    const contraseña = document.getElementById('contraseña').value.trim();
+    const confirmarContraseña = document.getElementById('confirmarContraseña').value.trim();
+    const errorDiv = document.getElementById('confirmarContraseña').nextElementSibling;
 
-    const form = event.target; // El formulario que se está enviando
-    const formData = new FormData(form); // Crear un objeto FormData con los datos del formulario
+    if (contraseña !== confirmarContraseña) {
+        document.getElementById('confirmarContraseña').classList.remove('is-valid');
+        document.getElementById('confirmarContraseña').classList.add('is-invalid');
+        errorDiv.textContent = "Las contraseñas no coinciden";
+        return false;
+    } else {
+        document.getElementById('confirmarContraseña').classList.remove('is-invalid');
+        document.getElementById('confirmarContraseña').classList.add('is-valid');
+        errorDiv.textContent = '';
+        return true;
+    }
+}
+
+function validarFormulario(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+
+    if (!validarConfirmacionContraseña()) {
+        return;
+    }
 
     fetch('../FoodMart-1.0.0/php/registro.php', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json()) // Parsear la respuesta como JSON
+    .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Muestra mensaje de éxito y redirige después de 2 segundos
             mostrarModal("¡Registro exitoso!");
             setTimeout(() => {
-                window.location.href = './index.html'; // Cambia esta URL según tus necesidades
+                window.location.href = './index.html';
             }, 2000);
         } else {
-            // Muestra el mensaje de error enviado desde PHP
             mostrarModal(data.message, false);
         }
     })
@@ -88,41 +106,19 @@ function validarFormulario(event) {
     });
 }
 
-
-
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('registroForm');
     form.addEventListener('submit', validarFormulario);
 
     const inputs = document.querySelectorAll('#registroForm input');
     inputs.forEach(input => {
-        input.addEventListener('input', () => validarCampo(input));
-    });
-
-
-    
-
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    const togglePassword = document.getElementById('togglePassword');
-    const password = document.getElementById('contraseña');
-    
-    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-    const confirmPassword = document.getElementById('confirmarContraseña');
-
-    togglePassword.addEventListener('click', function () {
-        const type = password.type === 'password' ? 'text' : 'password';
-        password.type = type;
-        this.classList.toggle('fa-eye');
-        this.classList.toggle('fa-eye-slash');
-    });
-
-    toggleConfirmPassword.addEventListener('click', function () {
-        const type = confirmPassword.type === 'password' ? 'text' : 'password';
-        confirmPassword.type = type;
-        this.classList.toggle('fa-eye');
-        this.classList.toggle('fa-eye-slash');
+        input.addEventListener('input', () => {
+            validarCampo(input);
+            if (input.id === 'contraseña' || input.id === 'confirmarContraseña') {
+                validarConfirmacionContraseña();
+            }
+        });
     });
 });
+
 
