@@ -1,11 +1,13 @@
 <?php
+header('Content-Type: application/json'); // Asegura que las respuestas sean JSON
 session_start(); // Inicia la sesión
 
 $conexion = mysqli_connect('localhost', 'root', '', 'escomdeals');
 
 // Verificar conexión
 if (!$conexion) {
-    die('Error al conectar con la base de datos: ' . mysqli_connect_error());
+    echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos: ' . mysqli_connect_error()]);
+    exit();
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -21,13 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validar datos obligatorios
     if (empty($nombre) || empty($email) || empty($contrasena) || empty($APaterno) || empty($AMaterno) || empty($telefono) || empty($usuario)) {
         echo json_encode(['success' => false, 'message' => 'Error: Todos los campos obligatorios deben ser completados.']);
-        exit;
+        exit();
     }
 
     // Validar formato de correo
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         echo json_encode(['success' => false, 'message' => 'Error: El formato del correo electrónico es inválido.']);
-        exit;
+        exit();
     }
 
     // Comprobar si el correo o el usuario ya existen
@@ -38,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $resultadoVerificacion = mysqli_stmt_get_result($stmtVerificacion);
 
     if (mysqli_num_rows($resultadoVerificacion) > 0) {
-        echo json_encode(['success' => false, 'message' => 'Error: El correo o el nombre de usuario ya estan registrados.']);
-        exit;
+        echo json_encode(['success' => false, 'message' => 'Error: El correo o el nombre de usuario ya están registrados.']);
+        exit();
     }
 
     // Cifrado de contraseña
@@ -61,26 +63,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['apellido_paterno'] = $APaterno;
         $_SESSION['apellido_materno'] = $AMaterno;
 
-                // Insertar en la tabla vendedor
-                $stmtVendedor = mysqli_prepare($conexion, "INSERT INTO vendedor (id_usuario) VALUES (?)");
-                mysqli_stmt_bind_param($stmtVendedor, 'i', $usuarioRegistrado);
-                mysqli_stmt_execute($stmtVendedor);
-                mysqli_stmt_close($stmtVendedor);
-        
-                // Insertar en la tabla comprador
-                $stmtComprador = mysqli_prepare($conexion, "INSERT INTO comprador (id_usuario) VALUES (?)");
-                mysqli_stmt_bind_param($stmtComprador, 'i', $usuarioRegistrado);
-                mysqli_stmt_execute($stmtComprador);
-                mysqli_stmt_close($stmtComprador);
+        // Insertar en la tabla vendedor
+        $stmtVendedor = mysqli_prepare($conexion, "INSERT INTO vendedor (id_usuario) VALUES (?)");
+        mysqli_stmt_bind_param($stmtVendedor, 'i', $usuarioRegistrado);
+        mysqli_stmt_execute($stmtVendedor);
+        mysqli_stmt_close($stmtVendedor);
 
-        // Redirigir a la página de inicio
-        header('Location: ../index.html');
+        // Insertar en la tabla comprador
+        $stmtComprador = mysqli_prepare($conexion, "INSERT INTO comprador (id_usuario) VALUES (?)");
+        mysqli_stmt_bind_param($stmtComprador, 'i', $usuarioRegistrado);
+        mysqli_stmt_execute($stmtComprador);
+        mysqli_stmt_close($stmtComprador);
+
+        // Respuesta de éxito
+        echo json_encode(['success' => true, 'message' => '¡Registro exitoso!']);
         exit();
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al registrar los datos: ' . mysqli_error($conexion)]);
+        exit();
     }
 
-    mysqli_stmt_close($stmt);    
+    mysqli_stmt_close($stmt); 
+       
 } else {
     echo json_encode(['success' => false, 'message' => 'Método no permitido.']);
 }

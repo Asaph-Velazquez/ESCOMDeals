@@ -75,7 +75,7 @@ function validarFormulario(event) {
             // Muestra mensaje de éxito y redirige después de 2 segundos
             mostrarModal("¡Registro exitoso!");
             setTimeout(() => {
-                window.location.href = 'pagina-principal.html'; // Cambia esta URL según tus necesidades
+                window.location.href = './index.html'; // Cambia esta URL según tus necesidades
             }, 2000);
         } else {
             // Muestra el mensaje de error enviado desde PHP
