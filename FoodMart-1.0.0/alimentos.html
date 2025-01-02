@@ -148,11 +148,22 @@ if ($result && $result->num_rows > 0) {
                                     <p class="card-title text-white">$<?php echo htmlspecialchars(number_format($producto['precio'], 2)); ?></p>
                                     <p class="card-text text-white small"><?php echo htmlspecialchars($producto['descripcion']); ?></p>
                                     <div class="d-flex gap-2 mt-2">
-                                        <button class="btn btn-secondary">Detalles</button>
-                                        <button class="btn btn-secondary">Agregar a Favoritos</button>
+                                        <a href="detalles.html?id_producto=<?php echo htmlspecialchars($producto['id_producto']); ?>">
+                                            <button class="btn btn-secondary">Detalles</button>
+                                        </a>
+                                        <form action="php/añadir_favorito.php" method="POST" class="d-inline">
+                                            <input type="hidden" name="id_producto" value="<?php echo htmlspecialchars($producto['id_producto']); ?>">
+                                            <button type="submit" class="btn btn-secondary">Agregar a Favoritos</button>
+                                        </form>
+                                        
                                     </div>
                                     <br>
-                                        <button class="btn btn-primary">Agregar al Carrito</button>
+                                    <form action="php/añadir_carrito.php" method="POST" class="d-inline">
+                                        <input type="hidden" name="id_producto" value="<?php echo htmlspecialchars($producto['id_producto']); ?>">
+                                        <button type="submit" class="btn btn-primary">Agregar al Carrito</button>
+                                    </form>
+
+
                                 </div>
                             </div>
                         </div>
