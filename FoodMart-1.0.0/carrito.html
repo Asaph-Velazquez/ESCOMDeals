@@ -1,31 +1,32 @@
+<?php session_start(); // Inicia la sesión para verificar si el usuario ha iniciado sesión ?>
 <?php
-session_start();
+// Conectar a la base de datos
+$conn = new mysqli("localhost", "root", "", "escomdeals");
 
-// Verificar que el usuario esté logueado
-if (!isset($_SESSION['id_usuario'])) {
-    echo "<script>alert('Por favor, inicia sesión para ver tu carrito.'); window.location.href = 'login.html';</script>";
-    exit();
+// Verificar la conexión
+if ($conn->connect_error) {
+    die("Conexión fallida: " . $conn->connect_error);
 }
 
-// Conectar a la base de datos
-include('php/conexion.php');
-
-// Obtener el id del usuario de la sesión
-$id_usuario = $_SESSION['id_usuario'];
-
-// Consulta preparada para obtener los productos del carrito
-$sql = "SELECT p.nombre, p.precio, c.cantidad, p.id_producto 
-        FROM carrito c 
-        JOIN producto p ON c.id_producto = p.id_producto 
+// Consulta para obtener los productos en el carrito del usuario actual
+$sql = "SELECT p.id_producto, p.nombre, p.descripcion, p.precio, p.imagen_producto, c.cantidad 
+        FROM carrito c
+        JOIN producto p ON c.id_producto = p.id_producto
         WHERE c.id_usuario = ?";
+
 $stmt = $conn->prepare($sql);
 
-// Vinculamos el parámetro
-$stmt->bind_param("i", $id_usuario);
+if (!$stmt) {
+    die("Error al preparar la consulta: " . $conn->error);
+}
 
-// Ejecutamos la consulta
+// Vincular el parámetro de usuario y ejecutar la consulta
+$stmt->bind_param("i", $_SESSION['id_usuario']);
 $stmt->execute();
+
+// Obtener el resultado
 $result = $stmt->get_result();
+
 ?>
 
 <!DOCTYPE html>
@@ -106,56 +107,61 @@ $result = $stmt->get_result();
 
     <!-- Carrito Section -->
     <section class="py-5">
+        
         <div class="container">
             <h1 class="mb-4 text-center">Carrito de Compras</h1>
             <div id="cart-items" class="table-responsive">
                 <table class="table table-bordered">
                     <thead class="table-dark">
                         <tr>
+                            <th>Imagen</th>
                             <th>Producto</th>
+                            <th>Descripción</th>
                             <th>Precio Unitario</th>
                             <th>Cantidad</th>
                             <th>Subtotal</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
+                    
+
                     <tbody>
-                        <?php
-                        if ($result->num_rows > 0) {
-                            $total = 0;
-                            while ($item = $result->fetch_assoc()) {
-                                $subtotal = $item['precio'] * $item['cantidad'];
-                                $total += $subtotal;
-                                echo "
-                                <tr>
-                                    <td>{$item['nombre']}</td>
-                                    <td>\${$item['precio']}</td>
-                                    <td>
-                                        <input type='number' 
-                                               name='quantity' 
-                                               value='{$item['cantidad']}' 
-                                               min='1'
-                                               data-product-id='{$item['id_producto']}' 
-                                               class='form-control cantidad' 
-                                               onchange='actualizarCantidad(this)'>
-                                    </td>
-                                    <td>\${$subtotal}</td>
-                                    <td>
-                                        <a href='php/eliminar_carrito.php?id_producto={$item['id_producto']}' class='btn btn-danger btn-sm'>Eliminar</a>
-                                    </td>
-                                </tr>
-                                ";
-                            }
-                            echo "
-                            <tr>
-                                <td colspan='4' class='text-end'>Total</td>
-                                <td>\${$total}</td>
-                            </tr>
-                            ";
-                        } else {
-                            echo "<tr><td colspan='5' class='text-center'>Tu carrito está vacío.</td></tr>";
-                        }
-                        ?>
+                        <?php 
+                    while ($item = $result->fetch_assoc()) {
+                        $subtotal = $item['precio'] * $item['cantidad']; // Calcular el subtotal inicial
+                        echo "
+                        <tr>
+                            <td><img src='php/imgsVentas/{$item['imagen_producto']}' alt='{$item['nombre']}' class='img-thumbnail' style='width: 100px;'></td>
+                            <td>{$item['nombre']}</td>
+                            <td>{$item['descripcion']}</td>
+                            <td>\${$item['precio']}</td>
+                            <td>
+                                <input type='number' 
+                                    name='quantity' 
+                                    value='{$item['cantidad']}' 
+                                    min='1' 
+                                    data-precio='{$item['precio']}' 
+                                    data-product-id='{$item['id_producto']}' 
+                                    class='form-control cantidad' 
+                                    onchange='actualizarSubtotal(this)'>
+                            </td>
+                            <td id='subtotal-{$item['id_producto']}'>\${$subtotal}</td>
+                            <td>
+                                <a href='php/eliminar_carrito.php?id_producto={$item['id_producto']}' class='btn btn-danger btn-sm'>Eliminar</a>
+                            </td>
+
+                        </tr>
+                        
+                        ";
+                    }
+                    ?>
+
+                        <!-- Fila del total general -->
+                <tr>
+                    <td colspan="5" class="text-end fw-bold">Total:</td>
+                    <td id="total-general" class="fw-bold"></td>
+                </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -239,6 +245,67 @@ $result = $stmt->get_result();
             <a href="privacidad.html" class="text-white">Política de Privacidad</a>
         </div>
     </footer>
+
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Seleccionar todos los inputs de cantidad
+    const quantityInputs = document.querySelectorAll(".cantidad");
+
+    // Asignar el evento `onchange` a cada input de cantidad
+    quantityInputs.forEach(input => {
+        input.addEventListener("input", () => actualizarSubtotal(input));
+    });
+
+    // Calcular y mostrar el total general al cargar la página
+    actualizarTotalGeneral();
+});
+
+function actualizarSubtotal(input) {
+    // Obtener el precio unitario del producto desde el atributo data-precio
+    const precio = parseFloat(input.getAttribute('data-precio'));
+
+    // Obtener la cantidad seleccionada por el usuario
+    const cantidad = parseInt(input.value);
+
+    // Validar la cantidad (en caso de que sea inválida o negativa)
+    if (isNaN(cantidad) || cantidad < 1) {
+        input.value = 1; // Restablecer a 1 si el valor no es válido
+        return;
+    }
+
+    // Calcular el nuevo subtotal
+    const subtotal = precio * cantidad;
+
+    // Actualizar la celda correspondiente al subtotal dinámicamente
+    const productId = input.getAttribute('data-product-id');
+    const subtotalCell = document.getElementById(`subtotal-${productId}`);
+    subtotalCell.textContent = `$${subtotal.toFixed(2)}`;
+
+    // Actualizar el total general dinámicamente
+    actualizarTotalGeneral();
+}
+
+function actualizarTotalGeneral() {
+    let total = 0;
+
+    // Seleccionar todas las celdas de subtotal
+    const subtotals = document.querySelectorAll("td[id^='subtotal-']");
+
+    subtotals.forEach(cell => {
+        const subtotal = parseFloat(cell.textContent.replace('$', ''));
+        if (!isNaN(subtotal)) {
+            total += subtotal;
+        }
+    });
+
+    // Actualizar el elemento que muestra el total general
+    const totalElement = document.getElementById('total-general');
+    totalElement.textContent = `$${total.toFixed(2)}`;
+}
+
+    </script>
+    
+
 </body>
 </html>
 

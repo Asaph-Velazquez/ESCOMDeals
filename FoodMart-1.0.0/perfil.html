@@ -127,7 +127,7 @@
                                 <div class="photo-container">
                                     <img id="profile-image" src="php/<?php echo $_SESSION['foto_perfil']; ?>" alt="Foto de perfil" class="rounded-circle" style="object-fit: cover;">
                                     <br>
-                                    <input type="file" name="foto_perfil" id="photo-upload" accept="image/*" style="display: none;" onchange="previewImage(event)">
+                                    <input type="file" accept=".PNG, .JPG, .JPEG" name="foto_perfil" id="photo-upload" accept="image/*" style="display: none;" onchange="previewImage(event)">
                                     <button type="button" id="upload-button" style="display: none;" onclick="document.getElementById('photo-upload').click()">Cambiar Foto</button>
                                 </div>
                             </section>
