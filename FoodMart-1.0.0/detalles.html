@@ -146,7 +146,7 @@ $stmt_horario->close();
             <!-- Información del vendedor -->
             <div class="col-12 text-center mb-4">
                 <div class="vendor-info">
-                    <img src="php/<?php 
+                    <a href="ventasUsuario.html?alias=<?php echo urlencode($producto['alias']); ?>"><img src="php/<?php 
                     if ($producto['foto_perfil'] === NULL || $producto['foto_perfil'] === '') {
                         echo 'uploads/perfil.png';
                     } else {
@@ -155,7 +155,8 @@ $stmt_horario->close();
                          alt="Vendedor" 
                          class="rounded-circle mb-2"
                          style="width: 140px; height: 140px; object-fit: cover;">
-                    <h4><?php echo htmlspecialchars($producto['alias']); ?></h4>
+                    </a>    
+                     <h4><?php echo htmlspecialchars($producto['alias']); ?></h4>
                 </div>
             </div>
 

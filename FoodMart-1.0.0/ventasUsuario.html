@@ -1,0 +1,307 @@
+<?php
+session_start();
+
+// Conexión a la base de datos
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "escomdeals";
+
+$conexion = new mysqli($servername, $username, $password, $dbname);
+
+if ($conexion->connect_error) {
+    die("Conexión fallida: " . $conexion->connect_error);
+}
+
+// Obtener y validar el alias del vendedor
+$alias = isset($_GET['alias']) ? $_GET['alias'] : '';
+if (empty($alias)) {
+    die('Alias de vendedor no proporcionado');
+}
+
+// Obtener información del vendedor y sus datos de usuario
+$query_vendedor = "SELECT u.*, v.id_vendedor
+                  FROM usuario u 
+                  INNER JOIN vendedor v ON u.id_usuario = v.id_usuario 
+                  WHERE u.alias = ?";
+
+$stmt_vendedor = $conexion->prepare($query_vendedor);
+if (!$stmt_vendedor) {
+    die('Error en la preparación de la consulta: ' . $conexion->error);
+}
+
+$stmt_vendedor->bind_param('s', $alias);
+
+if (!$stmt_vendedor->execute()) {
+    die('Error al ejecutar la consulta: ' . $conexion->error);
+}
+
+$resultado_vendedor = $stmt_vendedor->get_result();
+$vendedor = $resultado_vendedor->fetch_assoc();
+
+if (!$vendedor) {
+    die('Vendedor no encontrado');
+}
+
+// Obtener productos del vendedor con horarios
+$query_productos = "SELECT p.*, 
+                          (SELECT COUNT(*) FROM resena r WHERE r.id_producto = p.id_producto) as num_resenas,
+                          (SELECT AVG(calificacion) FROM resena r WHERE r.id_producto = p.id_producto) as promedio_calificacion
+                   FROM producto p 
+                   WHERE p.id_vendedor = ? 
+                   ORDER BY p.id_producto DESC";
+
+$stmt_productos = $conexion->prepare($query_productos);
+if (!$stmt_productos) {
+    die('Error en la preparación de la consulta de productos: ' . $conexion->error);
+}
+
+$stmt_productos->bind_param('i', $vendedor['id_vendedor']);
+
+if (!$stmt_productos->execute()) {
+    die('Error al ejecutar la consulta de productos: ' . $conexion->error);
+}
+
+$productos = $stmt_productos->get_result();
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Productos de <?php echo htmlspecialchars($vendedor['alias']); ?> - ESCOMDeals</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="css/footer.css">
+    
+    <style>
+        .product-card {
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .product-image {
+            max-height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+        .rating-stars {
+            color: #ffd700;
+        }
+        .vendor-info {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .vendor-info img {
+            border: 3px solid #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .error-message {
+            color: red;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #ffe6e6;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+        <!-- Header -->
+    <header class="fixed-top bg-light">
+        <div class="container-fluid">
+            <div class="row py-3 border-bottom">
+                <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+                    <div class="main-logo">
+                        <a href="index.html">
+                            <img src="images/logo.png" alt="ESCOMDeals" class="img-fluid">
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Search bar -->
+                <div class="col-sm-6 col-lg-5 d-none d-lg-block">
+                    <div class="search-bar bg-light p-2 my-2 rounded-4">
+                        <form id="search-form" action="index.html" method="post">
+                            <input type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- User options -->
+                <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
+                    <ul class="d-flex list-unstyled m-0">
+                        <li><a href="index.html" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
+                        <?php if (isset($_SESSION['alias'])): ?>
+                            <li><a href="wishlist.html" class="rounded-circle bg-light p-2 mx-1">Favoritos</a></li>
+                            <li><a href="carrito.html" class="rounded-circle bg-light p-2 mx-1">Carrito</a></li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle d-flex align-items-center" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img src="php/<?php echo $_SESSION['foto_perfil']; ?>" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <span class="ms-2"><?php echo $_SESSION['alias']; ?></span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                    <li><a class="dropdown-item" href="perfil.html">Ver Perfil</a></li>
+                                    <li><a class="dropdown-item" href="panel_ventas.html">Ventas</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="./php/logout.php"><span>Cerrar Sesión</span></a></li>
+                                </ul>
+                            </li>
+                        <?php else: ?>
+                            <li><a href="login.html" class="rounded-circle bg-light p-2 mx-1">Ingresar</a></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>                
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="margin-top: 100px;">
+        <!-- Información del vendedor -->
+        <div class="vendor-info">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    <img src="php/<?php 
+                        echo (!empty($vendedor['foto_perfil']) && $vendedor['foto_perfil'] !== '') 
+                            ? htmlspecialchars($vendedor['foto_perfil'])
+                            : 'uploads/perfil.png'; 
+                        ?>" 
+                         alt="<?php echo htmlspecialchars($vendedor['alias']); ?>"
+                         class="rounded-circle"
+                         style="width: 150px; height: 150px; object-fit: cover;">
+                </div>
+                <div class="col-md-9">
+                    <h2><?php echo htmlspecialchars($vendedor['alias']); ?></h2>
+                    <?php if (!empty($vendedor['telefono'])): ?>
+                        <p><i class="bi bi-telephone"></i> <?php echo htmlspecialchars($vendedor['telefono']); ?></p>
+                    <?php endif; ?>
+                    <?php if (!empty($vendedor['correo'])): ?>
+                        <p><i class="bi bi-envelope"></i> <?php echo htmlspecialchars($vendedor['correo']); ?></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de productos -->
+        <?php if ($productos->num_rows > 0): ?>
+            <div class="row">
+                <?php while ($producto = $productos->fetch_assoc()): ?>
+                    <?php
+                    // Obtener horarios del producto
+                    $query_horarios = "SELECT dia, horario FROM horario WHERE id_producto = ? ORDER BY FIELD(dia, 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo')";
+                    $stmt_horarios = $conexion->prepare($query_horarios);
+                    $stmt_horarios->bind_param('i', $producto['id_producto']);
+                    $stmt_horarios->execute();
+                    $horarios = $stmt_horarios->get_result();
+                    ?>
+                    
+                    <div class="col-12">
+                        <div class="card product-card shadow-sm">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <!-- Imagen del producto -->
+                                    <div class="col-md-3 text-center">
+                                        <img src="php/imgsVentas/<?= htmlspecialchars($producto['imagen_producto']) ?>" 
+                                             alt="<?= htmlspecialchars($producto['nombre']) ?>" 
+                                             class="img-fluid product-image">
+                                    </div>
+                                    
+                                    <!-- Detalles del producto -->
+                                    <div class="col-md-6">
+                                        <h5 class="card-title"><?= htmlspecialchars($producto['nombre']) ?></h5>
+                                        <div class="mb-2">
+                                            <span class="badge bg-secondary"><?= htmlspecialchars($producto['categoria']) ?></span>
+                                            <span class="rating-stars ms-2">
+                                                <?php 
+                                                $rating = round($producto['promedio_calificacion'] ?? 0);
+                                                for($i = 1; $i <= 5; $i++) {
+                                                    echo $i <= $rating ? '★' : '☆';
+                                                }
+                                                ?> 
+                                            </span>
+                                            <small>(<?= $producto['num_resenas'] ?? 0 ?> reseñas)</small>
+                                        </div>
+                                        <p class="card-text"><?= htmlspecialchars($producto['descripcion']) ?></p>
+                                        <p class="text-primary h5">$<?= number_format($producto['precio'], 2) ?></p>
+                                        <p>Stock disponible: <?= htmlspecialchars($producto['stock']) ?></p>
+                                        
+                                        <!-- Horarios -->
+                                        <?php if ($horarios->num_rows > 0): ?>
+                                            <div class="small mt-2">
+                                                <p class="mb-1"><strong>Horarios de venta:</strong></p>
+                                                <?php while ($horario = $horarios->fetch_assoc()): ?>
+                                                    <span class="badge bg-light text-dark me-2 mb-1">
+                                                        <?= htmlspecialchars($horario['dia']) ?>: 
+                                                        <?= htmlspecialchars($horario['horario']) ?>
+                                                    </span>
+                                                <?php endwhile; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <!-- Botones de acción -->
+                                    <input type="hidden" name="id_vendedor" value="<?php echo htmlspecialchars($vendedor['id_vendedor']); ?>">
+                                    <div class="col-md-3 text-center">
+                                        <?php if (isset($_SESSION['id_usuario'])): ?>
+                                            <?php if ($producto['disponibilidad'] && $producto['stock'] > 0): ?>
+                                                <form action="php/añadir_carrito.php" method="POST" class="mb-2">
+                                                    <input type="hidden" name="id_producto" value="<?= $producto['id_producto'] ?>">
+                                                    <button type="submit" class="btn btn-primary w-100">
+                                                        <i class="bi bi-cart-plus"></i> Añadir al Carrito
+                                                    </button>
+                                                </form>
+                                            <?php else: ?>
+                                                <button class="btn btn-secondary w-100 mb-2" disabled>
+                                                    No disponible
+                                                </button>
+                                            <?php endif; ?>
+                                            
+                                            <form action="php/añadir_favorito.php" method="POST" class="mb-2">
+                                                <input type="hidden" name="id_producto" value="<?= $producto['id_producto'] ?>">
+                                                <button type="submit" class="btn btn-outline-danger w-100">
+                                                    <i class="bi bi-heart"></i> Añadir a Favoritos
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <div class="alert alert-info">
+                                                <a href="login.html" class="alert-link">Inicia sesión</a> para comprar
+                                            </div>
+                                        <?php endif; ?>
+                                        
+                                        <a href="detalles.html?id_producto=<?= $producto['id_producto'] ?>" 
+                                           class="btn btn-outline-primary w-100">
+                                            <i class="bi bi-info-circle"></i> Ver Detalles
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i> Este vendedor aún no tiene productos publicados.
+            </div>
+        <?php endif; ?>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+<?php
+if (isset($stmt_horarios)) {
+    $stmt_horarios->close();
+}
+$stmt_vendedor->close();
+$stmt_productos->close();
+$conexion->close();
+?>
