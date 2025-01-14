@@ -1,13 +1,18 @@
 <?php
-// Conexión a la base de datos
+// Parámetros de conexión
 $servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "escomdeals";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+// Crear conexión
+$conexion = new mysqli($servername, $username, $password, $dbname);
 
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
+// Verificar conexión
+if ($conexion->connect_error) {
+    die("Error de conexión: " . $conexion->connect_error);
 }
+
+// Establecer charset
+$conexion->set_charset("utf8");
 ?>
