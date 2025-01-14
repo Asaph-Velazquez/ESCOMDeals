@@ -49,7 +49,6 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="../FoodMart-1.0.0/css/las_chidas/sesion.css">
 </head>
 <body>
-        <!-- Header -->
     <header class="fixed-top bg-light">
         <div class="container-fluid">
             <div class="row py-3 border-bottom">
@@ -60,16 +59,14 @@ $result = $stmt->get_result();
                         </a>
                     </div>
                 </div>
-                
                 <!-- Search bar -->
                 <div class="col-sm-6 col-lg-5 d-none d-lg-block">
                     <div class="search-bar bg-light p-2 my-2 rounded-4">
-                        <form id="search-form" action="busqueda.html" method="get">
-                            <input name="search" type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
+                        <form id="search-form" action="index.html" method="post">
+                            <input type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
                         </form>
                     </div>
                 </div>
-                
                 <!-- User options -->
                 <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
                     <ul class="d-flex list-unstyled m-0">
@@ -84,7 +81,7 @@ $result = $stmt->get_result();
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
                                     <li><a class="dropdown-item" href="perfil.html">Ver Perfil</a></li>
-                                    <li><a class="dropdown-item" href="panel_ventas.html">Ventas</a></li>
+                                    <li><a class="dropdown-item" href="configuracion.html">Configuración</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="./php/logout.php"><span>Cerrar Sesión</span></a></li>
                                 </ul>
@@ -169,22 +166,105 @@ $result = $stmt->get_result();
                 </table>
             </div>
             <div class="text-end">
-                <!-- Usamos PHP para decidir si el carrito tiene productos -->
                 <?php if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
-                    <!-- Si el carrito no está vacío, se permite finalizar la compra -->
-                    <form action="index.html" onsubmit="return checkout(true)">
-                        <button type="submit" class="btn btn-success">Finalizar Compra</button>
-                    </form>
+                    <!-- Botón que abre el modal -->
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalPago">Finalizar Compra</button>
                 <?php else: ?>
-                    <!-- Si el carrito está vacío, mostramos un mensaje diferente -->
-                    <form action="login.html" onsubmit="return checkout(false)">
+                    <form action="../FoodMart-1.0.0/login.html" onsubmit="return checkout(false)">
                         <button type="submit" class="btn btn-success">Finalizar Compra</button>
                     </form>
                 <?php endif; ?>
             </div>
             
+            
         </div>
     </section>
+
+  <!-- Modal para seleccionar el método de pago -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalPagoLabel">Seleccionar Método de Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formPago">
+                    <div class="mb-3">
+                        <label for="tarjetaSeleccionada" class="form-label">Selecciona tu tarjeta</label>
+                        <select class="form-select" id="tarjetaSeleccionada" required>
+                            <option value="">Selecciona una tarjeta</option>
+                            <?php
+                            // Conectar a la base de datos
+                            $conn = new mysqli("localhost", "root", "", "escomdeals");
+
+                            // Verificar la conexión
+                            if ($conn->connect_error) {
+                                die("Conexión fallida: " . $conn->connect_error);
+                            }
+
+                            // Obtener las tarjetas del usuario
+                            $sql = "SELECT id_tarjeta, numero, banco FROM tarjeta WHERE id_usuario = ?";
+                            $stmt = $conn->prepare($sql);
+                            $stmt->bind_param("i", $_SESSION['id_usuario']);
+                            $stmt->execute();
+                            $result = $stmt->get_result();
+
+                            // Si no hay tarjetas registradas, mostrar un mensaje
+                            if ($result->num_rows === 0) {
+                                echo "<option value=''>No tienes tarjetas registradas. Agrega una en tu perfil.</option>";
+                            } else {
+                                // Generar las opciones dinámicas para las tarjetas disponibles
+                                while ($tarjeta = $result->fetch_assoc()) {
+                                    $numero = substr($tarjeta['numero'], -4); // Mostrar solo los últimos 4 dígitos
+                                    echo "<option value='{$tarjeta['id_tarjeta']}'>**** **** **** {$numero} - {$tarjeta['banco']}</option>";
+                                }
+                            }
+
+                            // Cerrar la conexión
+                            $stmt->close();
+                            $conn->close();
+                            ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ccv" class="form-label">CCV</label>
+                        <input type="text" class="form-control" id="ccv" placeholder="123" maxlength="3" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnPagar">Pagar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("btnPagar").addEventListener("click", () => {
+        // Obtener los valores seleccionados
+        const tarjetaSeleccionada = document.getElementById("tarjetaSeleccionada").value;
+        const ccv = document.getElementById("ccv").value;
+
+        // Validar que los campos estén completos
+        if (!tarjetaSeleccionada || !ccv) {
+            alert("Por favor, selecciona una tarjeta y escribe el CCV.");
+            return;
+        }
+
+        // Simular la finalización de la compra
+        alert(`Pago realizado con la tarjeta seleccionada. ¡Gracias por tu compra!`);
+        
+        // Aquí se podría enviar la información al servidor si fuese necesario
+        // Redirigir para finalizar la compra en el servidor
+        window.location.href = "php/finalizar_compra.php";
+    });
+</script>
+
+
+
+
     <script>
         // Función para manejar la finalización de la compra con alerta
         function checkout(isNotEmpty) {
@@ -312,8 +392,4 @@ function actualizarTotalGeneral() {
 </body>
 </html>
 
-<?php
-// Cerrar la conexión
-$stmt->close();
-$conn->close();
-?>
+
