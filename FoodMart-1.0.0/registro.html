@@ -37,14 +37,13 @@
                 <!-- Search bar -->
                 <div class="col-sm-6 col-lg-5 d-none d-lg-block">
                     <div class="search-bar bg-light p-2 my-2 rounded-4">
-                        <form id="search-form" action="index.html" method="post">
-                            <input type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
+                        <form id="search-form" action="busqueda.html" method="get">
+                            <input name="search" type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
                         </form>
                     </div>
                 </div>
                 
                 <!-- User options -->
-                <?php session_start(); // Inicia la sesión para verificar si el usuario ha iniciado sesión ?>
                 <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
                     <ul class="d-flex list-unstyled m-0">
                         <li><a href="index.html" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
@@ -53,7 +52,7 @@
                             <li><a href="carrito.html" class="rounded-circle bg-light p-2 mx-1">Carrito</a></li>
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle d-flex align-items-center" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src="<?php echo $_SESSION['foto_perfil']; ?>" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <img src="php/<?php echo $_SESSION['foto_perfil']; ?>" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
                                     <span class="ms-2"><?php echo $_SESSION['alias']; ?></span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
