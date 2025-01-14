@@ -1,0 +1,482 @@
+<?php
+session_start();
+if (!isset($_SESSION['nombre'])) {
+    // Redirigir al login si no hay sesión activa
+    header("Location: login.html");
+    exit;
+}
+
+// Configurar la conexión a la base de datos
+$servername = "localhost"; // Cambiar si es necesario
+$username = "root";        // Usuario de la base de datos
+$password = "";            // Contraseña de la base de datos
+$dbname = "escomdeals"; // Nombre de la base de datos
+
+// Crear conexión
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Verificar conexión
+if ($conn->connect_error) {
+    die("Conexión fallida: " . $conn->connect_error);
+}
+?>
+
+
+
+<?php
+$current_page = basename($_SERVER['PHP_SELF']); // Obtiene el nombre del archivo actual
+?>
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Perfil - ESCOMDeals</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Perfil del usuario en ESCOMDeals.">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="./css/perfil.css">
+    <link rel="stylesheet" href="../FoodMart-1.0.0/css/footer.css">
+    <link rel="stylesheet" href="../FoodMart-1.0.0/css/los_chidos/sesion.css">
+
+    <script>
+        // Cargar datos en el formulario desde las variables de sesión de PHP
+        window.onload = function() {
+            // Las variables de sesión se manejan directamente en el HTML
+        };
+
+        // Habilitar edición del formulario
+        function enableEdit() {
+            const inputs = document.querySelectorAll(".form-control");
+            inputs.forEach(input => input.removeAttribute("disabled"));
+            document.getElementById("save-button").classList.remove("d-none");
+            document.getElementById('upload-button').style.display = 'inline'; // Mostrar el botón "Cambiar Foto"
+        }
+
+        // Guardar cambios del perfil
+        function saveProfile() {
+            const inputs = document.querySelectorAll(".form-control");
+            inputs.forEach(input => input.setAttribute("disabled", "true"));
+            document.getElementById("save-button").classList.add("d-none");
+            document.getElementById('upload-button').style.display = 'none'; // Ocultar el botón "Cambiar Foto"
+            alert("¡Perfil actualizado con éxito!");
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Habilitar edición del formulario
+            document.getElementById('edit-button').addEventListener('click', function() {
+                // Habilitar campos para edición
+                document.getElementById('usuario').disabled = false;
+                // Habilitar otros campos similares
+                document.getElementById('photo-upload').style.display = 'block';
+                document.getElementById('edit-button').classList.add('d-none');
+                document.getElementById('save-button').classList.remove('d-none');
+                document.getElementById('upload-button').style.display = 'inline'; // Mostrar el botón "Cambiar Foto"
+            });
+
+            document.getElementById('upload-button').addEventListener('click', function() {
+                document.getElementById('photo-upload').click();
+            });
+        });
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profile-image').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</head>
+<body>
+    <header class="fixed-top bg-light">
+        <div class="container-fluid">
+            <div class="row py-3 border-bottom">
+                <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+                    <div class="main-logo">
+                        <a href="index.html">
+                            <img src="images/logo.png" alt="ESCOMDeals" class="img-fluid">
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Search bar -->
+                <div class="col-sm-6 col-lg-5 d-none d-lg-block">
+                    <div class="search-bar bg-light p-2 my-2 rounded-4">
+                        <form id="search-form" action="index.html" method="post">
+                            <input type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- User options -->
+                <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
+                    <ul class="d-flex list-unstyled m-0">
+                        <li><a href="index.html" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
+                        <?php if (isset($_SESSION['alias'])): ?>
+                            <li><a href="wishlist.html" class="rounded-circle bg-light p-2 mx-1">Favoritos</a></li>
+                            <li><a href="carrito.html" class="rounded-circle bg-light p-2 mx-1">Carrito</a></li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle d-flex align-items-center" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img src="php/<?php echo $_SESSION['foto_perfil']; ?>" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <span class="ms-2"><?php echo $_SESSION['alias']; ?></span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                    <li><a class="dropdown-item" href="perfil.html">Ver Perfil</a></li>
+                                    <li><a class="dropdown-item" href="panel_ventas.html">Ventas</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="./php/logout.php"><span>Cerrar Sesión</span></a></li>
+                                </ul>
+                            </li>
+                        <?php else: ?>
+                            <li><a href="login.html" class="rounded-circle bg-light p-2 mx-1">Ingresar</a></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>                
+            </div>
+        </div>
+    </header>
+
+ <!-- Contenedor principal con espaciado -->
+<div class="container py-4">
+    <!-- Encabezado -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-5">
+        <h1 class="h3 mb-0 text-green-900">Gestión de Tarjetas</h1>
+        <!-- Botón para abrir el modal -->
+        <button class="btn" id="addCardButton" data-bs-toggle="modal" data-bs-target="#registerCardModal" style="background-color: #2D5C47; color: white;">
+            <i class="fas fa-plus-circle"></i> Registrar Nueva Tarjeta
+        </button>
+    </div>
+
+    <!-- Tabla de tarjetas -->
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="cardTable" width="100%" cellspacing="0">
+                <thead style="background-color: #2D5C47; color: white;">
+                    <tr>
+                        <th>Tipo de Tarjeta</th>
+                        <th>Número</th>
+                        <th>Banco Emisor</th>
+                        <th>Límite de Crédito</th>
+                        <th>Titular de Tarjeta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $query = "SELECT id_tarjeta, numero, tipo, banco, limite, nombre_titular FROM tarjeta";
+                    $result = $conn->query($query);
+
+                    if ($result && $result->num_rows > 0) {
+                        while ($row = $result->fetch_assoc()) {
+                            $logoPath = ($row['tipo'] === 'Visa') 
+                            ? 'https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png' 
+                            : 'https://upload.wikimedia.org/wikipedia/commons/b/b7/MasterCard_Logo.svg';
+                            echo "<tr class='align-middle'>"; // Clase para alinear el contenido en el medio
+                            echo "<td class='text-center'><img src='$logoPath' alt='{$row['tipo']}' style='width: 40px;'></td>";
+                            echo "<td>**** **** **** " . substr($row['numero'], -4) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['banco']) . "</td>";
+                            echo "<td>$" . number_format($row['limite'], 2) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['nombre_titular']) . "</td>";
+                            echo "<td class='text-center'>
+                                    <button class='btn btn-warning btn-sm edit-btn' data-bs-toggle='modal' data-bs-target='#editCardModal' data-id='{$row['id_tarjeta']}'><i class='fas fa-edit'></i> Editar</button>
+                                    <button class='btn btn-danger btn-sm delete-btn' data-bs-toggle='modal' data-bs-target='#deleteCardModal' data-id='{$row['id_tarjeta']}'><i class='fas fa-trash'></i> Eliminar</button>
+                                </td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='6' class='text-center'>No hay tarjetas registradas.</td></tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para registrar tarjetas -->
+<div class="modal fade" id="registerCardModal" tabindex="-1" role="dialog" aria-labelledby="registerCardModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <!-- Encabezado del Modal -->
+            <div class="modal-header" style="background-color: #2D5C47; color: white;">
+                <h5 class="modal-title" id="registerCardModalLabel">
+                    <i class="fas fa-credit-card"></i> Registrar Nueva Tarjeta
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <!-- Cuerpo del Modal -->
+            <div class="modal-body">
+                <form method="POST" action="./php/registrar_tarjeta.php">
+                    <!-- Número de Tarjeta -->
+                    <div class="form-group mb-3">
+                        <label for="numero">Número de Tarjeta</label>
+                        <input type="text" class="form-control" id="numero" name="numero" required maxlength="16" pattern="\d{16}" 
+                               placeholder="Ingrese los 16 dígitos de la tarjeta" oninput="detectCardType()">
+                    </div>
+                    <!-- Tipo de Tarjeta -->
+                    <div class="form-group mb-3">
+                        <label for="tipo">Tipo de Tarjeta</label>
+                        <select class="form-control" id="tipo" name="tipo" required>
+                            <option value="">Seleccione el tipo</option>
+                            <option value="Visa">Visa</option>
+                            <option value="Mastercard">Mastercard</option>
+                        </select>
+                    </div>
+                    <!-- Banco Emisor -->
+                    <div class="form-group mb-3">
+                        <label for="banco">Banco Emisor</label>
+                        <select class="form-control" id="banco" name="banco" required>
+                            <option value="">Seleccione un banco</option>
+                            <option value="BBVA">BBVA</option>
+                            <option value="Santander">Santander</option>
+                            <option value="Banorte">Banorte</option>
+                            <option value="HSBC">HSBC</option>
+                            <option value="Scotiabank">Scotiabank</option>
+                        </select>
+                    </div>
+                    <!-- Límite de Crédito -->
+                    <div class="form-group mb-3">
+                        <label for="limite">Límite de Crédito</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="limite" name="limite" required 
+                                   placeholder="Ingrese el límite de crédito">
+                        </div>
+                    </div>
+                    <!-- Nombre del Titular -->
+                    <div class="form-group mb-3">
+                        <label for="nombre_titular">Nombre del Titular</label>
+                        <input type="text" class="form-control" id="nombre_titular" name="nombre_titular" required 
+                               placeholder="Ingrese el nombre completo del titular">
+                    </div>
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Guardar Tarjeta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modales para editar y eliminar se pueden estructurar de manera similar -->
+
+<!-- Modal para editar tarjetas -->
+<div class="modal fade" id="editCardModal" tabindex="-1" role="dialog" aria-labelledby="editCardModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <!-- Encabezado del modal -->
+            <div class="modal-header" style="background-color: #2D5C47; color: white;">
+                <h5 class="modal-title" id="editCardModalLabel">
+                    <i class="fas fa-edit"></i> Editar Tarjeta
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Cuerpo del modal -->
+            <div class="modal-body">
+                <form id="editCardForm" method="POST" action="./php/editar_tarjeta.php">
+                    <!-- Campo oculto para el ID de la tarjeta -->
+                    <input type="hidden" id="edit-id_tarjeta" name="id_tarjeta">
+
+                    <!-- Número de Tarjeta -->
+                    <div class="form-group mb-3">
+                        <label for="edit-numero">Número de Tarjeta</label>
+                        <input type="text" class="form-control" id="edit-numero" name="numero" maxlength="16" pattern="\d{16}" 
+                               placeholder="Ingrese los 16 dígitos" required>
+                    </div>
+
+                    <!-- Tipo de Tarjeta -->
+                    <div class="form-group mb-3">
+                        <label for="edit-tipo">Tipo de Tarjeta</label>
+                        <select class="form-control" id="edit-tipo" name="tipo" required>
+                            <option value="">Seleccione un tipo</option>
+                            <option value="Visa">Visa</option>
+                            <option value="Mastercard">Mastercard</option>
+                        </select>
+                    </div>
+
+                    <!-- Banco Emisor -->
+                    <div class="form-group mb-3">
+                        <label for="edit-banco">Banco Emisor</label>
+                        <select class="form-control" id="edit-banco" name="banco" required>
+                            <option value="">Seleccione un banco</option>
+                            <option value="BBVA">BBVA</option>
+                            <option value="Santander">Santander</option>
+                            <option value="Banorte">Banorte</option>
+                            <option value="HSBC">HSBC</option>
+                            <option value="Scotiabank">Scotiabank</option>
+                        </select>
+                    </div>
+
+                    <!-- Límite de Crédito -->
+                    <div class="form-group mb-3">
+                        <label for="edit-limite">Límite de Crédito</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="edit-limite" name="limite" placeholder="Ingrese el límite de crédito" required>
+                        </div>
+                    </div>
+
+                    <!-- Nombre del Titular -->
+                    <div class="form-group mb-3">
+                        <label for="edit-nombre_titular">Nombre del Titular</label>
+                        <input type="text" class="form-control" id="edit-nombre_titular" name="nombre_titular" 
+                               placeholder="Ingrese el nombre completo del titular" required>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Footer -->
+    <footer>
+        <div class="container-fluid">
+            <p>&copy; 2024 ESCOMDeals - Todos los derechos reservados.</p>
+            <a href="terminos.html" class="text-white">Términos y Condiciones</a> |
+            <a href="privacidad.html" class="text-white">Política de Privacidad</a>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+<!-- Editar tarjeta -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const editButtons = document.querySelectorAll(".edit-btn");
+        const editForm = document.getElementById("editCardForm");
+    
+        // Manejar clic en los botones "Editar"
+        editButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const idTarjeta = button.getAttribute("data-id");
+    
+                // Realizar la solicitud a get_tarjeta.php
+                fetch(`./php/get_tarjetas.php?id_tarjeta=${idTarjeta}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                        } else {
+                            // Cargar los datos en el formulario del modal
+                            document.getElementById("edit-id_tarjeta").value = data.id_tarjeta;
+                            document.getElementById("edit-numero").value = data.numero;
+                            document.getElementById("edit-tipo").value = data.tipo;
+                            document.getElementById("edit-banco").value = data.banco;
+                            document.getElementById("edit-limite").value = data.limite;
+                            document.getElementById("edit-nombre_titular").value = data.nombre_titular;
+    
+                            // Mostrar el modal
+                            $('#editCardModal').modal('show');
+                        }
+                    })
+                    .catch(error => console.error("Error al cargar los datos:", error));
+            });
+        });
+    
+        // Manejar el envío del formulario de edición
+        editForm.addEventListener("submit", (e) => {
+            e.preventDefault(); // Prevenir la recarga de la página
+    
+            // Obtener los datos del formulario
+            const idTarjeta = document.getElementById("edit-id_tarjeta").value;
+            const numero = document.getElementById("edit-numero").value;
+            const tipo = document.getElementById("edit-tipo").value;
+            const banco = document.getElementById("edit-banco").value;
+            const limite = document.getElementById("edit-limite").value;
+            const nombreTitular = document.getElementById("edit-nombre_titular").value;
+    
+            // Enviar los datos al servidor
+            fetch("./php/editar_tarjeta.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    id_tarjeta: idTarjeta,
+                    numero: numero,
+                    tipo: tipo,
+                    banco: banco,
+                    limite: limite,
+                    nombre_titular: nombreTitular
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload(); // Recargar la página para reflejar los cambios
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => console.error("Error al guardar los cambios:", error));
+        });
+    });
+    </script>
+    
+
+
+<!-- Eliminar tarjeta -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const deleteButtons = document.querySelectorAll(".delete-btn");
+    
+        deleteButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const idTarjeta = button.getAttribute("data-id");
+    
+                if (confirm("¿Estás seguro de que deseas eliminar esta tarjeta?")) {
+                    fetch("./php/eliminar_tarjeta.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ id_tarjeta: idTarjeta })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert(data.message);
+                                location.reload(); // Recargar la página para reflejar los cambios
+                            } else {
+                                alert(data.message);
+                            }
+                        })
+                        .catch(error => console.error("Error:", error));
+                }
+            });
+        });
+    });
+    </script>
+    
+
+
+</body>
+</html>

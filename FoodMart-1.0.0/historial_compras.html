@@ -76,29 +76,70 @@
                     <th scope="col">Vendedor</th>
                     <th scope="col">Fecha</th>
                     <th scope="col">Precio</th>
-                    <th scope="col">Estado</th>
+                    <th scope="col">Total</th>
                 </tr>
             </thead>
+            
             <tbody>
-                <tr>
-                    <th scope="row">1</th>
-                    <td><img src="images/las_chidas/gomita.jpg" alt="Audífonos" class="img-thumbnail"></td>
-                    <td>Audífonos Inalámbricos</td>
-                    <td>TechStore</td>
-                    <td>25/12/2024</td>
-                    <td>$599.00</td>
-                    <td>Entregado</td>
-                </tr>
-                <tr>
-                    <th scope="row">2</th>
-                    <td><img src="images/las_chidas/teclado.jpg" alt="Teclado" class="img-thumbnail"></td>
-                    <td>Teclado Mecánico</td>
-                    <td>GamerWorld</td>
-                    <td>20/12/2024</td>
-                    <td>$1,299.00</td>
-                    <td>En Proceso</td>
-                </tr>
+                <?php
+                // Conectar a la base de datos
+                $conn = new mysqli("localhost", "root", "", "escomdeals");
+            
+                // Verificar la conexión
+                if ($conn->connect_error) {
+                    die("Conexión fallida: " . $conn->connect_error);
+                }
+            
+                // Consulta para obtener el historial de compras
+                $sql = "SELECT 
+                            p.id_pedido,
+                            dp.cantidad,
+                            pr.nombre AS producto,
+                            pr.precio,
+                            pr.imagen_producto,
+                            u.nombre AS vendedor,
+                            p.fecha,
+                            p.total AS total_pedido
+                        FROM 
+                            pedido p
+                        JOIN 
+                            detalle_pedido dp ON p.id_pedido = dp.id_pedido
+                        JOIN 
+                            producto pr ON dp.id_producto = pr.id_producto
+                        JOIN 
+                            vendedor v ON p.id_vendedor = v.id_vendedor
+                        JOIN 
+                            usuario u ON v.id_usuario = u.id_usuario
+                        WHERE 
+                            p.id_comprador = ?
+                        ORDER BY 
+                            p.fecha DESC";
+            
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $_SESSION['id_usuario']);
+                $stmt->execute();
+                $result = $stmt->get_result();
+            
+                // Mostrar los resultados en la tabla
+                while ($compra = $result->fetch_assoc()) {
+                    echo "<tr>
+                        <td>{$compra['id_pedido']}</td>
+                        <td><img src='php/imgsVentas/{$compra['imagen_producto']}' alt='{$compra['producto']}' class='img-thumbnail'></td>
+                        <td>{$compra['producto']}</td>
+                        <td>{$compra['vendedor']}</td>
+                        <td>{$compra['fecha']}</td>
+                        <td>\${$compra['precio']}</td>
+                        <td>\${$compra['total_pedido']}</td>
+                    </tr>";
+                }
+            
+                // Cerrar conexión
+                $stmt->close();
+                $conn->close();
+                ?>
             </tbody>
+            
+            
         </table>
     </main>
     

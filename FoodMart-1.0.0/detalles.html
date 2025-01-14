@@ -107,8 +107,8 @@ $stmt_horario->close();
                 <!-- Search bar -->
                 <div class="col-sm-6 col-lg-5 d-none d-lg-block">
                     <div class="search-bar bg-light p-2 my-2 rounded-4">
-                        <form id="search-form" action="index.html" method="post">
-                            <input type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
+                        <form id="search-form" action="busqueda.html" method="get">
+                            <input name="search" type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
                         </form>
                     </div>
                 </div>
@@ -256,7 +256,7 @@ $stmt_horario->close();
                 <?php if (isset($_SESSION['id_usuario'])): ?>
                     <div class="card mb-4">
                         <div class="card-body">
-                            <form id="reviewForm">
+                            <form id="reviewForm" action="php/agregarResena.php" method="get">
                                 <div class="mb-3">
                                     <label for="rating" class="form-label">Calificación</label>
                                     <select class="form-select" id="rating" required>
@@ -302,10 +302,15 @@ $stmt_horario->close();
                         <div class="card review-card mb-3">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
-                                    <img src="php/<?php echo htmlspecialchars($resena['foto_perfil']); ?>" 
-                                         alt="Foto de perfil" 
-                                         class="rounded-circle me-2"
-                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                    <img src="php/<?php 
+                                        if ($resena['foto_perfil'] === NULL || $resena['foto_perfil'] === '') {
+                                            echo 'uploads/perfil.png';
+                                        } else {
+                                            echo htmlspecialchars($resena['foto_perfil']);
+                                        } ?>" 
+                                        alt="Foto de perfil" 
+                                        class="rounded-circle me-2"
+                                        style="width: 40px; height: 40px; object-fit: cover;">
                                     <div>
                                         <h6 class="mb-0"><?php echo htmlspecialchars($resena['alias']); ?></h6>
                                         <small class="text-muted">
@@ -431,27 +436,40 @@ $stmt_horario->close();
             
             const rating = document.getElementById('rating').value;
             const content = document.getElementById('reviewContent').value;
+            const productId = new URLSearchParams(window.location.search).get('id_producto');
             
-            fetch('php/agregar_resena.php', {
+            // Agregar console.log para depuración
+            console.log('Enviando datos:', {
+                id_producto: productId,
+                calificacion: rating,
+                comentario: content
+            });
+            
+            const formData = new FormData();
+            formData.append('id_producto', productId);
+            formData.append('calificacion', rating);
+            formData.append('comentario', content);
+            
+            fetch('php/agregarResena.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    id_producto: new URLSearchParams(window.location.search).get('id_producto'),
-                    calificacion: rating,
-                    comentario: content
-                })
+                body: formData
             })
-            .then(response => response.json())
+            .then(response => response.text()) // Cambiado a text() para ver la respuesta completa
             .then(data => {
-                if (data.success) {
-                    mostrarNotificacion('Reseña publicada con éxito', 'success');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    mostrarNotificacion(data.message || 'Error al publicar la reseña', 'error');
+                console.log('Respuesta del servidor:', data); // Ver la respuesta completa
+                try {
+                    const jsonData = JSON.parse(data);
+                    if (jsonData.success) {
+                        mostrarNotificacion('Reseña publicada con éxito', 'success');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        mostrarNotificacion(jsonData.message || 'Error al publicar la reseña', 'error');
+                    }
+                } catch (e) {
+                    console.error('Error al parsear JSON:', e);
+                    mostrarNotificacion('Error en la respuesta del servidor', 'error');
                 }
             })
             .catch(error => {
