@@ -1,114 +1,35 @@
 <?php
 session_start();
-include '../conexion.php';
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $usuario = $_POST['usuario'];
-    $email = $_POST['email'];
-    $phone = $_POST['phone'];
-
-    $response = ['status' => 'success', 'message' => ''];
-
-    // Validación de número de teléfono (10 dígitos)
-    if (strlen($phone) != 10 || !preg_match('/^\d+$/', $phone)) {
-        $response['status'] = 'error';
-        $response['message'] = "El número de teléfono debe tener 10 dígitos.";
-        echo json_encode($response);
-        exit;
-    }
-
-    // Verificar si el usuario, correo o número ya existen en la base de datos
-    $conn = new mysqli("localhost", "usuario", "contraseña", "base_de_datos");
-    if ($conn->connect_error) {
-        die("Conexión fallida: " . $conn->connect_error);
-    }
-
-    // Comprobar si el nombre de usuario ya existe
-    $result = $conn->query("SELECT * FROM usuario WHERE usuario = '$usuario'");
-    if ($result->num_rows > 0) {
-        $response['status'] = 'error';
-        $response['message'] = "El nombre de usuario ya está registrado.";
-        echo json_encode($response);
-        exit;
-    }
-
-    // Comprobar si el correo electrónico ya existe
-    $result = $conn->query("SELECT * FROM usuario WHERE email = '$email'");
-    if ($result->num_rows > 0) {
-        $response['status'] = 'error';
-        $response['message'] = "El correo electrónico ya está registrado.";
-        echo json_encode($response);
-        exit;
-    }
-
-    // Comprobar si el número de teléfono ya existe
-    $result = $conn->query("SELECT * FROM usuario WHERE phone = '$phone'");
-    if ($result->num_rows > 0) {
-        $response['status'] = 'error';
-        $response['message'] = "El número de teléfono ya está registrado.";
-        echo json_encode($response);
-        exit;
-    }
-
-    // Si todo está bien, insertar el nuevo usuario
-    $stmt = $conn->prepare("INSERT INTO usuario (usuario, email, phone) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $usuario, $email, $phone);
-    $stmt->execute();
-
-    $response['message'] = "¡Usuario registrado con éxito!";
-    echo json_encode($response);
-    $stmt->close();
-    $conn->close();
-}
+include_once '../conexion.php';  // Asegúrate de incluir la conexión correctamente
 ?>
+
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Nuevo Usuario - ESCOMDeals</title>
+    <title>ESCOMDeals - Registro de Usuario</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Registro de nuevo usuario en ESCOMDeals.">
+    <meta name="description" content="ESCOMDeals: plataforma para compra y venta entre estudiantes de ESCOM">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="stylesheet" href="../../css/perfil.css">
+    <link rel="stylesheet" type="text/css" href="../../style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="../../css/registro.css">
     <link rel="stylesheet" href="../../css/footer.css">
     <link rel="stylesheet" href="../../css/los_chidos/sesion.css">
+    
 
-    <script>
-        // Validación del formulario
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('profile-form');
-            form.addEventListener('submit', function(event) {
-                let errors = [];
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 
-                const usuario = document.getElementById('usuario').value;
-                const email = document.getElementById('email').value;
-                const phone = document.getElementById('phone').value;
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-                // Validación del número de teléfono (10 dígitos)
-                if (phone.length !== 10 || !/^\d+$/.test(phone)) {
-                    errors.push("El número de teléfono debe tener 10 dígitos.");
-                }
+    
 
-                // Validación de campos vacíos
-                if (usuario === "" || email === "" || phone === "") {
-                    errors.push("Todos los campos son obligatorios.");
-                }
-
-                // Mostrar errores si existen
-                if (errors.length > 0) {
-                    event.preventDefault();  // Evitar el envío del formulario
-                    document.getElementById('error-messages').innerHTML = errors.join("<br>");
-                }
-            });
-        });
-    </script>
 </head>
 <body>
-    <header class="fixed-top bg-light">
+<header class="fixed-top bg-light">
         <div class="container-fluid">
             <div class="row py-3 border-bottom">
                 <div class="col-sm-4 col-lg-3 text-center text-sm-start">
@@ -118,6 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </a>
                     </div>
                 </div>
+                
+                <!-- Search bar -->
+                <div class="col-sm-6 col-lg-5 d-none d-lg-block">
+
+        
+                </div>
+                
+                <!-- User options -->
                 <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
                     <ul class="d-flex list-unstyled m-0">
                         <li><a href="index.php" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
@@ -135,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 </ul>
                             </li>
                         <?php else: ?>
-                            <li><a href="login.php" class="rounded-circle bg-light p-2 mx-1">Ingresar</a></li>
+                            <li><a href="login.html" class="rounded-circle bg-light p-2 mx-1">Ingresar</a></li>
                         <?php endif; ?>
                     </ul>
                 </div>                
@@ -143,105 +72,145 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </header>
 
-    <!-- Nuevo Usuario Section -->
-    <section class="py-5">
-        <div class="container">
-            <h2 class="text-center mb-4">Nuevo Usuario</h2>
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card p-4 shadow-sm">
-                        <form id="profile-form" method="POST" action="crud.php" enctype="multipart/form-data">
-                            <div class="mb-3">
-                                <label for="usuario" class="form-label">Usuario</label>
-                                <input type="text" name="usuario" id="usuario" class="form-control" required>
+    <div class="main-content">
+        <div class="loginrey">
+            <img src="../../images/login.png" alt="Logo" class="logo">
+            
+            <!-- Título principal -->
+            <h1 class="text-center my-4">Registro de Usuario</h1>
+                
+                <form id="registroForm" method="post" action="registro.php">
+                    <div class="row g-4 justify-content-center">
+                        <!-- Primera fila: Nombre, Apellido Paterno, Apellido Materno -->
+                        <div class="col-md-4 d-flex justify-content-center">
+                            <div class="form-floating w-100">
+                                <input type="text" class="form-control" id="nombres" placeholder="Nombres" name="nombre" required>
+                                <div class="mensaje-invalido"></div>
+                                <label for="nombres">Nombre</label>
                             </div>
-                            <div class="mb-3">
-                                <label for="nombre" class="form-label">Nombre</label>
-                                <input type="text" name="nombre" id="nombre" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 d-flex justify-content-center">
+                            <div class="form-floating w-100">
+                                <input type="text" class="form-control" id="apellidoPaterno" placeholder="Apellido paterno" name="apellidoPaterno" required>
+                                <div class="mensaje-invalido"></div>
+                                <label for="apellidoPaterno">Apellido paterno</label>
                             </div>
+                        </div>
+                        <div class="col-md-4 d-flex justify-content-center">
+                            <div class="form-floating w-100">
+                                <input type="text" class="form-control" id="apellidoMaterno" placeholder="Apellido materno" name="apellidoMaterno" required>
+                                <div class="mensaje-invalido"></div>
+                                <label for="apellidoMaterno">Apellido materno</label>
+                            </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label for="apellido_paterno" class="form-label">Apellido Paterno</label>
-                                <input type="text" name="apellido_paterno" id="apellido_paterno" class="form-control" required>
+                        <!-- Segunda fila: Correo Electrónico, Teléfono -->
+                        <div class="col-md-6 d-flex justify-content-center">
+                            <div class="form-floating w-100">
+                                <input type="email" class="form-control" id="correoElectronico" placeholder="Correo electrónico" name="email" required>
+                                <div class="mensaje-invalido"></div>
+                                <label for="correoElectronico">Correo electrónico</label>
                             </div>
+                        </div>
+                        <div class="col-md-6 d-flex justify-content-center">
+                            <div class="form-floating w-100">
+                                <input type="tel" class="form-control" id="numeroTelefono" placeholder="Número de teléfono" name="telefono" required maxlength="10">
+                                <div class="mensaje-invalido"></div>
+                                <label for="numeroTelefono">Número de teléfono</label>
+                            </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label for="apellido_materno" class="form-label">Apellido Materno</label>
-                                <input type="text" name="apellido_materno" id="apellido_materno" class="form-control" required>
+                        <!-- Tercera fila: Usuario, Contraseña, Confirmar Contraseña -->
+                        <div class="col-md-4 d-flex justify-content-center">
+                            <div class="form-floating w-100">
+                                <input type="text" class="form-control" id="usuario" placeholder="Usuario" name="usuario" required>
+                                <div class="mensaje-invalido"></div>
+                                <label for="usuario">Usuario</label>
                             </div>
+                        </div>
+                        <div class="col-md-4 d-flex justify-content-center">
+                            <div class="form-floating w-100">
+                                <input type="password" class="form-control" id="contraseña" placeholder="Contraseña" name="password" required>
+                                <div class="mensaje-invalido"></div>
+                                <label for="contraseña">Contraseña</label>
+                            </div>
+                            <div class="ojo">
+                                <i class="fa-solid fa-eye ms-2" id="togglePassword" style="cursor: pointer;"></i>
+                            </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Correo Electrónico</label>
-                                <input type="email" name="email" id="email" class="form-control" required 
-                                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
-                                    title="El correo electrónico debe ser válido (ejemplo: ejemplo@dominio.com)">
+                        <div class="col-md-4 d-flex justify-content-center">
+                            <div class="form-floating w-100">
+                                <input type="password" class="form-control" id="confirmarContraseña" placeholder="Confirmar contraseña" name="confirmarPassword" required>
+                                <div class="mensaje-invalido"></div>
+                                <label for="confirmarContraseña">Confirmar contraseña</label>
                             </div>
-
-                            <div class="mb-3">
-                                <label for="phone" class="form-label">Teléfono</label>
-                                <input type="text" name="phone" id="phone" class="form-control" maxlength="10" required 
-                                    pattern="\d{10}" title="El número de teléfono debe tener solo 10 dígitos" oninput="this.value=this.value.replace(/\D/g,'');">
+                            <div class="ojo">
+                                <i class="fa-solid fa-eye ms-2" id="toggleConfirmPassword" style="cursor: pointer;"></i>
                             </div>
-
-                            <div class="d-flex justify-content-center">
-                                <button type="submit" class="btn btn-success">Registrar Usuario</button>
-                            </div>
-                        </form>                        
+                        </div>
                     </div>
-                </div>
+
+                    <form id="registroForm" method="post" action="registro.php">
+                        <!-- Contenido del formulario... -->
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary">Registrar</button>
+                        </div>
+                    </form>
+
+                </form>
+
+        </div>
+    </div>
+
+    <!-- Modal para Mensaje -->
+    <div class="modal fade" id="mensajeModal" tabindex="-1" aria-labelledby="mensajeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="mensajeModalLabel">Estado del Registro</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <!-- Mensaje dinámico -->
+            <p id="mensajeModalTexto"></p>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
-    </section>
-
-    <!-- Mostrar mensajes de error -->
-    <div id="error-messages" style="color: red;"></div>
+        </div>
+    </div>
+  
     <script>
-    // Validación del formulario usando AJAX
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('profile-form');
-        form.addEventListener('submit', function(event) {
-            event.preventDefault(); // Evitar el envío del formulario tradicional
+        function mostrarModal(mensaje, exito = true) {
+        const modalTexto = document.getElementById('mensajeModalTexto');
+        modalTexto.textContent = mensaje;
+    
+        if (exito) {
+            modalTexto.style.color = 'green';
+        } else {
+            modalTexto.style.color = 'red';
+        }
+    
+        const modal = new bootstrap.Modal(document.getElementById('mensajeModal'));
+        modal.show();
+    }
+    </script>
 
-            let errors = [];
-            const usuario = document.getElementById('usuario').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
+    <!-- Footer -->
+    <footer>
+        <div class="container-fluid">
+            <p>&copy; 2024 ESCOMDeals - Todos los derechos reservados.</p>
+            <a href="terminos.html" class="text-white">Términos y Condiciones</a> |
+            <a href="privacidad.html" class="text-white">Política de Privacidad</a>
+        </div>
+    </footer>
 
-            // Validación del número de teléfono (10 dígitos)
-            if (phone.length !== 10 || !/^\d+$/.test(phone)) {
-                errors.push("El número de teléfono debe tener 10 dígitos.");
-            }
-
-            // Validación de campos vacíos
-            if (usuario === "" || email === "" || phone === "") {
-                errors.push("Todos los campos son obligatorios.");
-            }
-
-            // Mostrar errores si existen
-            if (errors.length > 0) {
-                document.getElementById('error-messages').innerHTML = errors.join("<br>");
-            } else {
-                // Si no hay errores, se hace la solicitud AJAX
-                const formData = new FormData(form);
-                fetch('crud.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'error') {
-                        document.getElementById('error-messages').innerHTML = data.message;
-                    } else {
-                        // Mostrar éxito o redirigir si es necesario
-                        alert(data.message);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            }
-        });
-    });
-</script>
-
+    <script src="./validacionesForm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./../../js/main.js"></script>
+
 </body>
 </html>

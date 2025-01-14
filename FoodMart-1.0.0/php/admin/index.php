@@ -147,89 +147,9 @@ if ($result->num_rows > 0) {
         </div>
     </header>
 
-    <!-- Banner Section -->
-    <section class="py-3" style="background-image: url('./../../images/background-pattern.jpg'); background-size: cover;">
-        <div id="CaruselDestacados" class="carousel slide">
-            <div class="carousel-indicators">
-              <button type="button" data-bs-target="#CaruselDestacados" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-              <button type="button" data-bs-target="#CaruselDestacados" data-bs-slide-to="1" aria-label="Slide 2"></button>
-              <button type="button" data-bs-target="#CaruselDestacados" data-bs-slide-to="2" aria-label="Slide 3"></button>
-            </div>
-            <div class="carousel-inner">
-              <div class="carousel-item active">
-                <img src="./../../../FoodMart-1.0.0/images/las_chidas/imagen1_carrusel.jpg" 
-                    class="d-block w-100" 
-                    alt="ImagenCarrusel1" 
-                    style="height: 400px; object-fit: cover;">
-                <div class="carousel-caption d-none d-md-block">
-                  <h3 style="color: red;">Asados de navidad</h3>
-                  <p>En estas navidades disfruta con tus amigos un delicioso asado</p>
-                </div>
-              </div>
-              <div class="carousel-item">
-                <img src="./../../../FoodMart-1.0.0/images/las_chidas/imagen2_carrucel_celular.jpg" 
-                    class="d-block w-100" 
-                    alt="ImagenCarrusel2" 
-                    style="height: 400px; object-fit: cover;">
-                <div class="carousel-caption d-none d-md-block">
-                  <h3 style="color:blueviolet;">Venta de celulares</h3>
-                  <p>Escoge entre una variedad de diversas opciones pero no te quedes sin comunicar</p>
-                </div>
-              </div>
-              <div class="carousel-item">
-                <img src="./../../../FoodMart-1.0.0/images/las_chidas/imagen3_carrucel_libros.jpg" 
-                    class="d-block w-100" 
-                    alt="ImagenCarrusel3" 
-                    style="height: 400px; object-fit: cover;">
-                <div class="carousel-caption d-none d-md-block">
-                  <h3 style="color: aqua;">Libros de todo genero</h3>
-                  <p>Siempre ten a la mano un poco de cultura en tus manos</p>
-                </div>
-              </div>
-            </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#CaruselDestacados" data-bs-slide="prev">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#CaruselDestacados" data-bs-slide="next">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
-              <span class="visually-hidden">Next</span>
-            </button>
-          </div>
-    </section>
+   
 
-    <!-- Categories Section -->
-    <section class="py-5">
-        <div class="container-fluid">
-            <h2 class="section-title text-center">Categorías Populares</h2>
-            <div class="row text-center mt-4">
-                <div class="col-md-3">
-                    <a href="alimentos.html" class="nav-link">
-                        <img src="./../../images/icon-vegetables-broccoli.png" alt="Alimentos" class="img-fluid rounded-circle">
-                        <h3>Alimentos</h3>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="tecnologia.html" class="nav-link">
-                        <img src="./../../images/icon-soft-drinks-bottle.png" alt="Tecnología" class="img-fluid rounded-circle">
-                        <h3>Tecnología</h3>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="libros.html" class="nav-link">
-                        <img src="./../../images/icon-bread-baguette.png" alt="Libros" class="img-fluid rounded-circle">
-                        <h3>Libros</h3>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="accesorios.html" class="nav-link">
-                        <img src="./../../images/icon-wine-glass-bottle.png" alt="Accesorios" class="img-fluid rounded-circle">
-                        <h3>Accesorios</h3>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
+
 
     <!-- Trending Products Section -->
     <section class="py-5">
