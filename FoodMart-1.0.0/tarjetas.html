@@ -21,14 +21,9 @@ if ($conn->connect_error) {
 }
 ?>
 
-
-
 <?php
 $current_page = basename($_SERVER['PHP_SELF']); // Obtiene el nombre del archivo actual
 ?>
-
-
-
 
 
 <!DOCTYPE html>
@@ -174,15 +169,27 @@ $current_page = basename($_SERVER['PHP_SELF']); // Obtiene el nombre del archivo
                 </thead>
                 <tbody>
                     <?php
-                    $query = "SELECT id_tarjeta, numero, tipo, banco, limite, nombre_titular FROM tarjeta";
-                    $result = $conn->query($query);
-
+                    // Obtener el ID del usuario desde la sesión
+                    $id_usuario = $_SESSION['id_usuario'];
+                    
+                    // Consulta para obtener solo las tarjetas del usuario logeado
+                    $query = "SELECT id_tarjeta, numero, tipo, banco, limite, nombre_titular 
+                              FROM tarjeta 
+                              WHERE id_usuario = ?"; // Usamos un parámetro para evitar inyección SQL
+                    
+                    // Preparar y ejecutar la consulta
+                    $stmt = $conn->prepare($query);
+                    $stmt->bind_param("i", $id_usuario);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    
+                    // Verificar resultados y mostrar las tarjetas
                     if ($result && $result->num_rows > 0) {
                         while ($row = $result->fetch_assoc()) {
                             $logoPath = ($row['tipo'] === 'Visa') 
                             ? 'https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png' 
                             : 'https://upload.wikimedia.org/wikipedia/commons/b/b7/MasterCard_Logo.svg';
-                            echo "<tr class='align-middle'>"; // Clase para alinear el contenido en el medio
+                            echo "<tr class='align-middle'>"; 
                             echo "<td class='text-center'><img src='$logoPath' alt='{$row['tipo']}' style='width: 40px;'></td>";
                             echo "<td>**** **** **** " . substr($row['numero'], -4) . "</td>";
                             echo "<td>" . htmlspecialchars($row['banco']) . "</td>";
@@ -197,7 +204,7 @@ $current_page = basename($_SERVER['PHP_SELF']); // Obtiene el nombre del archivo
                     } else {
                         echo "<tr><td colspan='6' class='text-center'>No hay tarjetas registradas.</td></tr>";
                     }
-                    ?>
+                    ?>                    
                 </tbody>
             </table>
         </div>
