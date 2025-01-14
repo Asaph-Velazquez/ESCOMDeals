@@ -106,8 +106,9 @@ $productos = $stmt->get_result();
     </header>
     <!-- Panel de Ventas -->
     <main class="container my-5">
-        <div class="mb-4">
+        <div class="mb-4 d-flex gap-3">
             <a href="nueva_venta.html" class="btn btn-primary">Nueva Venta</a>
+            <a href="misVentas.html" class="btn btn-success">Mis Ventas</a>
         </div>
         <?php if ($productos->num_rows > 0): ?>
             <?php while ($producto = $productos->fetch_assoc()): ?>

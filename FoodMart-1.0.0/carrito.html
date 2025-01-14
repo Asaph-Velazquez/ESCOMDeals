@@ -166,7 +166,7 @@ $result = $stmt->get_result();
                 </table>
             </div>
             <div class="text-end">
-                <?php if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
+                <?php if ($result->num_rows > 0): ?>
                     <!-- Botón que abre el modal -->
                     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalPago">Finalizar Compra</button>
                 <?php else: ?>
@@ -181,15 +181,20 @@ $result = $stmt->get_result();
     </section>
 
   <!-- Modal para seleccionar el método de pago -->
-<div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
+  <div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalPagoLabel">Seleccionar Método de Pago</h5>
+                <h5 class="modal-title" id="modalPagoLabel">Finalizar Compra</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
                 <form id="formPago">
+                    <div class="mb-3">
+                        <label for="direccionActual" class="form-label">Indica tu ubicación actual</label>
+                        <textarea class="form-control" id="direccionActual" name="direccionActual" rows="3" 
+                            placeholder="Ej: Unidad Profesional Adolfo López Mateos, Edificio 1, Salón 1101" required></textarea>
+                    </div>
                     <div class="mb-3">
                         <label for="tarjetaSeleccionada" class="form-label">Selecciona tu tarjeta</label>
                         <select class="form-select" id="tarjetaSeleccionada" required>
@@ -210,18 +215,14 @@ $result = $stmt->get_result();
                             $stmt->execute();
                             $result = $stmt->get_result();
 
-                            // Si no hay tarjetas registradas, mostrar un mensaje
                             if ($result->num_rows === 0) {
-                                echo "<option value=''>No tienes tarjetas registradas. Agrega una en tu perfil.</option>";
+                                echo "<option value=''>No tienes tarjetas registradas</option>";
                             } else {
-                                // Generar las opciones dinámicas para las tarjetas disponibles
                                 while ($tarjeta = $result->fetch_assoc()) {
-                                    $numero = substr($tarjeta['numero'], -4); // Mostrar solo los últimos 4 dígitos
+                                    $numero = substr($tarjeta['numero'], -4);
                                     echo "<option value='{$tarjeta['id_tarjeta']}'>**** **** **** {$numero} - {$tarjeta['banco']}</option>";
                                 }
                             }
-
-                            // Cerrar la conexión
                             $stmt->close();
                             $conn->close();
                             ?>
@@ -229,7 +230,7 @@ $result = $stmt->get_result();
                     </div>
                     <div class="mb-3">
                         <label for="ccv" class="form-label">CCV</label>
-                        <input type="text" class="form-control" id="ccv" placeholder="123" maxlength="3" required>
+                        <input type="password" class="form-control" id="ccv" maxlength="3" placeholder="###" required>
                     </div>
                 </form>
             </div>
@@ -242,24 +243,41 @@ $result = $stmt->get_result();
 </div>
 
 <script>
-    document.getElementById("btnPagar").addEventListener("click", () => {
-        // Obtener los valores seleccionados
-        const tarjetaSeleccionada = document.getElementById("tarjetaSeleccionada").value;
-        const ccv = document.getElementById("ccv").value;
+document.getElementById("btnPagar").addEventListener("click", () => {
+    // Obtener los valores del formulario
+    const tarjetaSeleccionada = document.getElementById("tarjetaSeleccionada").value;
+    const ccv = document.getElementById("ccv").value;
+    const direccionActual = document.getElementById("direccionActual").value;
 
-        // Validar que los campos estén completos
-        if (!tarjetaSeleccionada || !ccv) {
-            alert("Por favor, selecciona una tarjeta y escribe el CCV.");
-            return;
+    // Validar que los campos estén completos
+    if (!tarjetaSeleccionada || !ccv || !direccionActual) {
+        alert("Por favor, completa todos los campos requeridos.");
+        return;
+    }
+
+    // Crear un FormData object
+    const formData = new FormData();
+    formData.append('direccionActual', direccionActual);
+
+    // Enviar la información al servidor
+    fetch('php/finalizar_compra.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        // Verificar si la respuesta es exitosa
+        if (response.ok) {
+            alert('¡Compra realizada con éxito!');
+            window.location.href = 'index.html';
+        } else {
+            throw new Error('Error al procesar la compra');
         }
-
-        // Simular la finalización de la compra
-        alert(`Pago realizado con la tarjeta seleccionada. ¡Gracias por tu compra!`);
-        
-        // Aquí se podría enviar la información al servidor si fuese necesario
-        // Redirigir para finalizar la compra en el servidor
-        window.location.href = "php/finalizar_compra.php";
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Hubo un error al procesar tu compra. Por favor, intenta nuevamente.');
     });
+});
 </script>
 
 

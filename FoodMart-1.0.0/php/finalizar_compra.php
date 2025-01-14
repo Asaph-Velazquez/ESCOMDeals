@@ -10,6 +10,17 @@ if (!isset($_SESSION['id_usuario'])) {
     exit;
 }
 
+// Verificar si se recibió la dirección
+if (!isset($_POST['direccionActual']) || empty($_POST['direccionActual'])) {
+    echo "<script>
+        alert('Por favor, indica tu ubicación actual.');
+        window.location.href = '../carrito.html';
+    </script>";
+    exit;
+}
+
+$direccionActual = $_POST['direccionActual'];
+
 // Conectar a la base de datos
 $conn = new mysqli("localhost", "root", "", "escomdeals");
 
@@ -50,13 +61,13 @@ if ($stmt_carrito) {
             $stmt_pedido->execute();
             $id_pedido = $stmt_pedido->insert_id; // Obtener el ID del pedido insertado
 
-            // Insertar detalles del pedido en `detalle_pedido`
+            // Insertar detalles del pedido en `detalle_pedido` incluyendo la dirección
             foreach ($productos as $producto) {
-                $sql_detalle = "INSERT INTO detalle_pedido (cantidad, id_pedido, id_producto) VALUES (?, ?, ?)";
+                $sql_detalle = "INSERT INTO detalle_pedido (cantidad, id_pedido, id_producto, direccionActual) VALUES (?, ?, ?, ?)";
                 $stmt_detalle = $conn->prepare($sql_detalle);
 
                 if ($stmt_detalle) {
-                    $stmt_detalle->bind_param("iii", $producto['cantidad'], $id_pedido, $producto['id_producto']);
+                    $stmt_detalle->bind_param("iiis", $producto['cantidad'], $id_pedido, $producto['id_producto'], $direccionActual);
                     $stmt_detalle->execute();
                 }
             }

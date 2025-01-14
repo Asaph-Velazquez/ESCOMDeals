@@ -86,6 +86,8 @@ CREATE TABLE detalle_pedido (
     cantidad INT NOT NULL CHECK (cantidad > 0),
     id_pedido INT NOT NULL,
     id_producto INT NOT NULL,
+    estado VARCHAR(50) DEFAULT 'Pendiente',
+    direccionActual text,
     FOREIGN KEY (id_pedido) REFERENCES pedido(id_pedido) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (id_producto) REFERENCES producto(id_producto) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -129,6 +131,3 @@ CREATE TABLE tarjeta (
     id_usuario INT NOT NULL, -- Nueva columna para asociar la tarjeta con el usuario
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)  -- Llave foránea para garantizar la relación
 );
-
-
-
