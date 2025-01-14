@@ -124,7 +124,10 @@ if ($conn->connect_error) {
                                             <h5 class="card-title">' . htmlspecialchars($row['nombre']) . '</h5>
                                             <p class="card-text">$' . number_format($row['precio'], 2) . '</p>
                                             <div class="d-flex justify-content-center gap-2">
-                                                <a href="carrito.html" class="btn btn-primary">Agregar al Carrito</a>
+                                                <form action="php/añadir_carrito.php" method="POST" class="d-inline">
+                                                    <input type="hidden" name="id_producto" value="' . htmlspecialchars($row['id_producto']) . '">
+                                                    <button type="submit" class="btn btn-primary">Agregar al Carrito</button>
+                                                </form>
                                                 <a href="php/eliminar_favorito.php?id_producto=' . $row['id_producto'] . '" class="btn btn-outline-danger">Eliminar</a>
                                             </div>
                                         </div>
