@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="./css/perfil.css">
     <link rel="stylesheet" href="../FoodMart-1.0.0/css/footer.css">
     <link rel="stylesheet" href="../FoodMart-1.0.0/css/los_chidos/sesion.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
     <script>
         // Cargar datos en el formulario desde las variables de sesión de PHP
@@ -81,8 +82,8 @@
                 <!-- Search bar -->
                 <div class="col-sm-6 col-lg-5 d-none d-lg-block">
                     <div class="search-bar bg-light p-2 my-2 rounded-4">
-                        <form id="search-form" action="index.html" method="post">
-                            <input type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
+                        <form id="search-form" action="busqueda.html" method="get">
+                            <input name="search" type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
                         </form>
                     </div>
                 </div>
@@ -90,6 +91,18 @@
                 <!-- User options -->
                 <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
                     <ul class="d-flex list-unstyled m-0">
+                        <!-- Icono de notificaciones -->
+                        <li class="dropdown">
+                            <a href="#" class="d-flex align-items-center position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-bell fs-5"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationCount">0</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" id="notificationMenu">
+                                <li class="dropdown-item text-center text-muted">No hay nuevas notificaciones</li>
+                            </ul>
+                        </li>
+
+
                         <li><a href="index.html" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
                         <?php if (isset($_SESSION['alias'])): ?>
                             <li><a href="wishlist.html" class="rounded-circle bg-light p-2 mx-1">Favoritos</a></li>
@@ -179,6 +192,45 @@
             <a href="privacidad.html" class="text-white">Política de Privacidad</a>
         </div>
     </footer>
+    
+    <script>
+        // Función para cargar notificaciones
+        function fetchNotifications() {
+            fetch('php/obtenerNotificaciones.php')
+                .then(response => response.json())
+                .then(data => {
+                    const notificationMenu = document.getElementById('notificationMenu');
+                    const notificationCount = document.getElementById('notificationCount');
+    
+                    notificationMenu.innerHTML = ''; // Limpia el menú actual
+    
+                    if (data.length > 0) {
+                        notificationCount.textContent = data.length;
+                        data.forEach(notif => {
+                            const item = document.createElement('li');
+                            item.classList.add('dropdown-item');
+                            item.innerHTML = `
+                                <a href="MisVentas.html" class="text-decoration-none">
+                                    ${notif.mensaje} - ${notif.fecha}
+                                </a>
+                            `;
+                            notificationMenu.appendChild(item);
+                        });
+                    } else {
+                        notificationCount.textContent = '0';
+                        const empty = document.createElement('li');
+                        empty.classList.add('dropdown-item', 'text-center', 'text-muted');
+                        empty.textContent = 'No hay nuevas notificaciones';
+                        notificationMenu.appendChild(empty);
+                    }
+                })
+                .catch(err => console.error('Error al cargar notificaciones:', err));
+        }
+    
+        // Cargar notificaciones al inicio y cada 10 segundos
+        fetchNotifications();
+        setInterval(fetchNotifications, 10000);
+    </script>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
