@@ -1,0 +1,568 @@
+<?php
+session_start();
+
+// Conexión a la base de datos
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "escomdeals";
+
+$conexion = new mysqli($servername, $username, $password, $dbname);
+
+if ($conexion->connect_error) {
+    die("Conexión fallida: " . $conexion->connect_error);
+}
+
+// Obtener el ID del producto
+$id_producto = isset($_GET['id_producto']) ? intval($_GET['id_producto']) : 0;
+
+// Consulta para obtener los datos del producto y el vendedor
+$query = "SELECT p.*, u.alias, u.foto_perfil 
+          FROM producto p 
+          JOIN vendedor v ON p.id_vendedor = v.id_vendedor
+          JOIN usuario u ON v.id_usuario = u.id_usuario 
+          WHERE p.id_producto = ?";
+$stmt = $conexion->prepare($query);
+
+if ($stmt === false) {
+    die("Error en la preparación de la declaración: " . $conexion->error);
+}
+
+$stmt->bind_param('i', $id_producto);
+$stmt->execute();
+$resultado = $stmt->get_result();
+
+if ($resultado->num_rows > 0) {
+    $producto = $resultado->fetch_assoc();
+} else {
+    die('Producto no encontrado');
+}
+
+// Obtener el horario del producto
+$query_horario = "SELECT dia, horario FROM horario WHERE id_producto = ?";
+$stmt_horario = $conexion->prepare($query_horario);
+$stmt_horario->bind_param('i', $id_producto);
+$stmt_horario->execute();
+$result_horario = $stmt_horario->get_result();
+
+$horarios = [];
+while ($row = $result_horario->fetch_assoc()) {
+    $horarios[$row['dia']] = $row['horario'];
+}
+
+$stmt->close();
+$stmt_horario->close();
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Detalles del Producto - ESCOMDeals</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Detalles del producto en ESCOMDeals">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="css/footer.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        .stars {
+            color: #ffd700;
+            font-size: 1.25rem;
+        }
+        .vendor-info img {
+            border: 3px solid #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .product-image {
+            max-height: 500px;
+            object-fit: contain;
+        }
+        .review-card {
+            background-color: #f8f9fa;
+            transition: transform 0.2s;
+        }
+        .review-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="fixed-top bg-light">
+        <div class="container-fluid">
+            <div class="row py-3 border-bottom">
+                <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+                    <div class="main-logo">
+                        <a href="index.html">
+                            <img src="images/logo.png" alt="ESCOMDeals" class="img-fluid">
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Search bar -->
+                <div class="col-sm-6 col-lg-5 d-none d-lg-block">
+                    <div class="search-bar bg-light p-2 my-2 rounded-4">
+                        <form id="search-form" action="busqueda.html" method="get">
+                            <input name="search" type="text" class="form-control border-0" placeholder="Buscar productos en ESCOMDeals" />
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- User options -->
+                <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
+                    <ul class="d-flex list-unstyled m-0">
+                        <!-- Icono de notificaciones -->
+                        <li class="dropdown">
+                            <a href="#" class="d-flex align-items-center position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-bell fs-5"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationCount">0</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" id="notificationMenu">
+                                <li class="dropdown-item text-center text-muted">No hay nuevas notificaciones</li>
+                            </ul>
+                        </li>
+
+
+                        <li><a href="index.html" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
+                        <?php if (isset($_SESSION['alias'])): ?>
+                            <li><a href="wishlist.html" class="rounded-circle bg-light p-2 mx-1">Favoritos</a></li>
+                            <li><a href="carrito.html" class="rounded-circle bg-light p-2 mx-1">Carrito</a></li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle d-flex align-items-center" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img src="php/<?php echo $_SESSION['foto_perfil']; ?>" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <span class="ms-2"><?php echo $_SESSION['alias']; ?></span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                    <li><a class="dropdown-item" href="perfil.html">Ver Perfil</a></li>
+                                    <li><a class="dropdown-item" href="panel_ventas.html">Ventas</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="./php/logout.php"><span>Cerrar Sesión</span></a></li>
+                                </ul>
+                            </li>
+                        <?php else: ?>
+                            <li><a href="login.html" class="rounded-circle bg-light p-2 mx-1">Ingresar</a></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>                
+            </div>
+        </div>
+    </header>
+    <!-- Contenido principal -->
+    <main class="container" style="margin-top: 100px;">
+        <div class="row mb-5">
+            <!-- Información del vendedor -->
+            <div class="col-12 text-center mb-4">
+                <div class="vendor-info">
+                    <a href="ventasUsuario.html?alias=<?php echo urlencode($producto['alias']); ?>"><img src="php/<?php 
+                    if ($producto['foto_perfil'] === NULL || $producto['foto_perfil'] === '') {
+                        echo 'uploads/perfil.png';
+                    } else {
+                        echo htmlspecialchars($producto['foto_perfil']);
+                    } ?>"
+                         alt="Vendedor" 
+                         class="rounded-circle mb-2"
+                         style="width: 140px; height: 140px; object-fit: cover;">
+                    </a>    
+                     <h4><?php echo htmlspecialchars($producto['alias']); ?></h4>
+                </div>
+            </div>
+
+            <!-- Imagen del producto -->
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <img src="php/imgsVentas/<?php echo htmlspecialchars($producto['imagen_producto']); ?>" 
+                         class="card-img-top product-image" 
+                         alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
+                </div>
+            </div>
+
+            <!-- Detalles del producto -->
+            <div class="col-md-6">
+                <h1 class="mb-3"><?php echo htmlspecialchars($producto['nombre']); ?></h1>
+                
+                <div class="mb-4">
+                    <h2 class="text-primary h3">
+                        $<?php echo number_format($producto['precio'], 2); ?>
+                    </h2>
+                </div>
+
+                <div class="mb-3">
+                    <span class="badge bg-primary">
+                        <?php echo htmlspecialchars($producto['categoria']); ?>
+                    </span>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Descripción</h5>
+                    <p><?php echo htmlspecialchars($producto['descripcion']); ?></p>
+                </div>
+
+                <!-- Horarios -->
+                <div class="mb-4">
+                    <h5>Horarios de Venta</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tbody>
+                                <?php foreach ($horarios as $dia => $horario): ?>
+                                    <tr>
+                                        <td class="fw-bold"><?php echo ucfirst($dia); ?></td>
+                                        <td><?php echo htmlspecialchars($horario); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Stock y Disponibilidad -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong>Stock disponible:</strong> 
+                            <?php echo htmlspecialchars($producto['stock']); ?> unidades
+                        </span>
+                        <span class="badge <?php echo $producto['disponibilidad'] ? 'bg-success' : 'bg-danger'; ?>">
+                            <?php echo $producto['disponibilidad'] ? 'Disponible' : 'No disponible'; ?>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <?php if (isset($_SESSION['id_usuario'])): ?>
+                <div>
+                    <?php if ($producto['disponibilidad']): ?>
+                        <form action="php/añadir_carrito.php" method="POST" style="display:inline;">
+                            <input type="hidden" name="id_producto" value="<?php echo htmlspecialchars($producto['id_producto']); ?>">
+                            <button type="submit" class="btn btn-primary">
+                                Añadir al Carrito
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                    <form action="php/añadir_favorito.php" method="POST" style="display:inline;">
+                        <input type="hidden" name="id_producto" value="<?php echo htmlspecialchars($producto['id_producto']); ?>">
+                        <button type="submit" class="btn btn-outline-danger">
+                            Añadir a Favoritos
+                        </button>
+                    </form>
+                </div>
+            <?php else: ?>
+                <div class="alert alert-info">
+                    <a href="login.html">Inicia sesión</a> para comprar o guardar en favoritos
+                </div>
+            <?php endif; ?>
+            
+            </div>
+        </div>
+
+        <!-- Sección de Reseñas -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="mb-4">Reseñas</h2>
+
+                <!-- Formulario de reseña -->
+                <?php if (isset($_SESSION['id_usuario'])): ?>
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <form id="reviewForm" action="php/agregarResena.php" method="get">
+                                <div class="mb-3">
+                                    <label for="rating" class="form-label">Calificación</label>
+                                    <select class="form-select" id="rating" required>
+                                        <option value="5">★★★★★</option>
+                                        <option value="4">★★★★☆</option>
+                                        <option value="3">★★★☆☆</option>
+                                        <option value="2">★★☆☆☆</option>
+                                        <option value="1">★☆☆☆☆</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reviewContent" class="form-label">Tu reseña</label>
+                                    <textarea class="form-control" id="reviewContent" rows="3" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Publicar reseña</button>
+                            </form>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-info mb-4">
+                        <a href="login.html">Inicia sesión</a> para dejar una reseña
+                    </div>
+                <?php endif; ?>
+
+                <!-- Lista de reseñas -->
+                <div class="reviews-list">
+                    <?php
+                    $query_resenas = "SELECT r.*, u.alias, u.foto_perfil 
+                                     FROM resena r 
+                                     JOIN comprador c ON r.id_comprador = c.id_comprador
+                                     JOIN usuario u ON c.id_usuario = u.id_usuario
+                                     WHERE r.id_producto = ?
+                                     ORDER BY r.fecha DESC";
+                    
+                    $stmt_resenas = $conexion->prepare($query_resenas);
+                    $stmt_resenas->bind_param('i', $id_producto);
+                    $stmt_resenas->execute();
+                    $resultado_resenas = $stmt_resenas->get_result();
+
+                    if ($resultado_resenas->num_rows > 0):
+                        while ($resena = $resultado_resenas->fetch_assoc()):
+                    ?>
+                        <div class="card review-card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="php/<?php 
+                                        if ($resena['foto_perfil'] === NULL || $resena['foto_perfil'] === '') {
+                                            echo 'uploads/perfil.png';
+                                        } else {
+                                            echo htmlspecialchars($resena['foto_perfil']);
+                                        } ?>" 
+                                        alt="Foto de perfil" 
+                                        class="rounded-circle me-2"
+                                        style="width: 40px; height: 40px; object-fit: cover;">
+                                    <div>
+                                        <h6 class="mb-0"><?php echo htmlspecialchars($resena['alias']); ?></h6>
+                                        <small class="text-muted">
+                                            <?php echo date('d/m/Y', strtotime($resena['fecha'])); ?>
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="stars mb-2">
+                                    <?php
+                                    for ($i = 1; $i <= 5; $i++) {
+                                        echo $i <= $resena['calificacion'] ? '★' : '☆';
+                                    }
+                                    ?>
+                                </div>
+                                <p class="card-text"><?php echo htmlspecialchars($resena['comentario']); ?></p>
+                            </div>
+                        </div>
+                    <?php 
+                        endwhile;
+                    else:
+                    ?>
+                        <div class="alert alert-light text-center">
+                            No hay reseñas todavía. ¡Sé el primero en opinar!
+                        </div>
+                    <?php
+                    endif;
+                    $stmt_resenas->close();
+                    $conexion->close();
+                    ?>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p>&copy; 2024 ESCOMDeals - Todos los derechos reservados</p>
+                    <div>
+                        <a href="terminos.html" class="text-white me-3">Términos y Condiciones</a>
+                        <a href="privacidad.html" class="text-white">Política de Privacidad</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Funciones para el carrito
+        function agregarAlCarrito(idProducto) {
+            fetch('php/agregar_carrito.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id_producto: idProducto
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarNotificacion('Producto añadido al carrito', 'success');
+                } else {
+                    mostrarNotificacion(data.message || 'Error al añadir al carrito', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarNotificacion('Error al procesar la solicitud', 'error');
+            });
+        }
+
+        // Funciones para favoritos
+        function agregarAFavoritos(idProducto) {
+            fetch('php/agregar_favorito.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id_producto: idProducto
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarNotificacion('Producto añadido a favoritos', 'success');
+                } else {
+                    mostrarNotificacion(data.message || 'Error al añadir a favoritos', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarNotificacion('Error al procesar la solicitud', 'error');
+            });
+        }
+
+        // Sistema de notificaciones
+        function mostrarNotificacion(mensaje, tipo) {
+            const notificacion = document.createElement('div');
+            notificacion.classList.add('notificacion', `notificacion-${tipo}`);
+            notificacion.innerHTML = mensaje;
+            document.body.appendChild(notificacion);
+
+            setTimeout(() => {
+                notificacion.classList.add('mostrar');
+            }, 100);
+
+            setTimeout(() => {
+                notificacion.classList.remove('mostrar');
+                setTimeout(() => {
+                    notificacion.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Manejo del formulario de reseñas
+        document.getElementById('reviewForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const rating = document.getElementById('rating').value;
+            const content = document.getElementById('reviewContent').value;
+            const productId = new URLSearchParams(window.location.search).get('id_producto');
+            
+            // Agregar console.log para depuración
+            console.log('Enviando datos:', {
+                id_producto: productId,
+                calificacion: rating,
+                comentario: content
+            });
+            
+            const formData = new FormData();
+            formData.append('id_producto', productId);
+            formData.append('calificacion', rating);
+            formData.append('comentario', content);
+            
+            fetch('php/agregarResena.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text()) // Cambiado a text() para ver la respuesta completa
+            .then(data => {
+                console.log('Respuesta del servidor:', data); // Ver la respuesta completa
+                try {
+                    const jsonData = JSON.parse(data);
+                    if (jsonData.success) {
+                        mostrarNotificacion('Reseña publicada con éxito', 'success');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        mostrarNotificacion(jsonData.message || 'Error al publicar la reseña', 'error');
+                    }
+                } catch (e) {
+                    console.error('Error al parsear JSON:', e);
+                    mostrarNotificacion('Error en la respuesta del servidor', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarNotificacion('Error al procesar la solicitud', 'error');
+            });
+        });
+
+        // Estilos CSS para las notificaciones
+        const styles = `
+        .notificacion {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 4px;
+            color: white;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notificacion.mostrar {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notificacion-success {
+            background-color: #28a745;
+        }
+
+        .notificacion-error {
+            background-color: #dc3545;
+        }
+        `;
+
+        // Agregar los estilos al documento
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
+    </script>
+        <script>
+            // Función para cargar notificaciones
+            function fetchNotifications() {
+                fetch('php/obtenerNotificaciones.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        const notificationMenu = document.getElementById('notificationMenu');
+                        const notificationCount = document.getElementById('notificationCount');
+        
+                        notificationMenu.innerHTML = ''; // Limpia el menú actual
+        
+                        if (data.length > 0) {
+                            notificationCount.textContent = data.length;
+                            data.forEach(notif => {
+                                const item = document.createElement('li');
+                                item.classList.add('dropdown-item');
+                                item.innerHTML = `
+                                    <a href="MisVentas.html" class="text-decoration-none">
+                                        ${notif.mensaje} - ${notif.fecha}
+                                    </a>
+                                `;
+                                notificationMenu.appendChild(item);
+                            });
+                        } else {
+                            notificationCount.textContent = '0';
+                            const empty = document.createElement('li');
+                            empty.classList.add('dropdown-item', 'text-center', 'text-muted');
+                            empty.textContent = 'No hay nuevas notificaciones';
+                            notificationMenu.appendChild(empty);
+                        }
+                    })
+                    .catch(err => console.error('Error al cargar notificaciones:', err));
+            }
+        
+            // Cargar notificaciones al inicio y cada 10 segundos
+            fetchNotifications();
+            setInterval(fetchNotifications, 10000);
+        </script>
+        
+</body>
+</html>

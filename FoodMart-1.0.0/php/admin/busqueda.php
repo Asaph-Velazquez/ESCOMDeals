@@ -1,17 +1,10 @@
 <?php session_start(); // Inicia la sesión para verificar si el usuario ha iniciado sesión ?>
-<?php include 'modal/eliminar1.php'; ?>
 <?php
-// Verificar si el usuario ha iniciado sesión
-if (!isset($_SESSION['id_usuario'])) {
-    header("Location: ../../login.html");
-    exit();
-}
-
 // Conexión a la base de datos
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "escomdeals";
+$dbname = "escomdeals";  // Ajusta el nombre de la base de datos si es necesario
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -20,18 +13,27 @@ if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
 
-// Consulta para obtener las publicaciones
-$sql = "SELECT * FROM producto WHERE stock > 0";
+// Capturar el término de búsqueda desde la URL
+$search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
+
+// Consulta para buscar por nombre de producto o alias del vendedor
+$sql = "SELECT p.*, u.alias 
+        FROM producto p
+        JOIN usuario u ON p.id_vendedor = u.id_usuario
+        WHERE (p.nombre LIKE '%$search%' OR u.alias LIKE '%$search%') 
+        AND p.stock > 0";
+
+// Ejecutar la consulta y obtener los resultados
 $result = $conn->query($sql);
 
-// Verifica si hay resultados
+// Procesar los productos encontrados
 $productos = [];
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $productos[] = $row;
     }
 } else {
-    echo "<p class='text-center'>No hay productos publicados actualmente.</p>";
+    echo "<p class='text-center'>No se encontraron resultados para \"$search\".</p>";
 }
 ?>
 
@@ -43,64 +45,22 @@ if ($result->num_rows > 0) {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ESCOMDeals: plataforma para compra y venta entre estudiantes de ESCOM">
-    
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="./../../css/vendor.css">
-    <link rel="stylesheet" type="text/css" href="./../../style.css">
-    <link rel="stylesheet" href="./../../css/main.css">
+    <link rel="stylesheet" type="text/css" href="../../accesorios.html">
+    <link rel="stylesheet" type="text/css" href="../../style.css">
+    <link rel="stylesheet" href="../../css/main.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./../../css/footer.css">
-    <link rel="stylesheet" href="./../../css/los_chidos/sesion.css">
-    <!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/footer.css">
+    <link rel="stylesheet" href="../../css/los_chidos/sesion.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-<!-- Bootstrap Bundle JS (incluye Popper.js) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-
-    <script>
-        // Función para previsualizar la imagen
-        function previewImage(input) {
-            const preview = input.nextElementSibling; // La imagen está justo después del input
-            
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                }
-                
-                reader.readAsDataURL(input.files[0]);
-            } else {
-                preview.src = "https://dummyimage.com/600x700/dee2e6/6c757d.jpg";
-            }
-        }
-    
-        // Inicializar cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', function() {
-            // Configurar la previsualización de imagen
-            const imageInput = document.getElementById('imagenProducto');
-            imageInput.addEventListener('change', function() {
-                previewImage(this);
-            }); 
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const myCarousel = document.getElementById('CaruselDestacados');
-            const carousel = new bootstrap.Carousel(myCarousel, {
-                interval: 2000,
-                ride: 'carousel',
-                wrap: true
-            });
-        });
-        </script>
 </head>
 <body>
-    <!-- Header -->
     <header class="fixed-top bg-light">
         <div class="container-fluid">
             <div class="row py-3 border-bottom">
@@ -124,6 +84,9 @@ if ($result->num_rows > 0) {
                 <!-- User options -->
                 <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0">        
                     <ul class="d-flex list-unstyled m-0">
+
+
+
                         <li><a href="index.php" class="rounded-circle bg-light p-2 mx-1">Inicio</a></li>
                         <?php if (isset($_SESSION['alias'])): ?>
                             <li><a href="crud.php" class="rounded-circle bg-light p-2 mx-1">Panel</a></li>
@@ -147,24 +110,18 @@ if ($result->num_rows > 0) {
         </div>
     </header>
 
-   
-
-
-
-    <!-- Trending Products Section -->
-    <section class="py-5">
-        <div class="container-fluid">
-            <h2 class="section-title text-center">Productos Publicados</h2>
-            <div class="row row-cols-1 row-cols-md-4 g-4 mt-4">
-                <?php if (!empty($productos)): ?>
-                    <?php foreach ($productos as $producto): ?>
-                        <div class="col">
-                            <div class="card product-card position-relative">
-                                <!-- Imagen del producto -->
-                                <img src="../imgsVentas/<?php echo htmlspecialchars($producto['imagen_producto'])?>" class="card-img-top" alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
-                                
-                                <!-- Información al pasar el ratón -->
-                                <div class="product-info-overlay d-flex flex-column align-items-center justify-content-center position-absolute w-100 h-100">
+    <div class="container my-5">
+        <h2 class="text-center">Resultados de Búsqueda</h2>
+        <div class="row mt-4">
+            <?php if (!empty($productos)): ?>
+                <?php foreach ($productos as $producto): ?>
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="card product-card position-relative">
+                        <!-- Imagen del producto -->
+                        <img src="../imgsVentas/<?php echo htmlspecialchars($producto['imagen_producto'])?>" class="card-img-top" alt="<?php echo htmlspecialchars($producto['nombre']); ?>">
+                        
+                        <!-- Información al pasar el ratón -->
+                        <div class="product-info-overlay d-flex flex-column align-items-center justify-content-center position-absolute w-100 h-100">
                                     <h5 class="card-title text-white"><?php echo htmlspecialchars($producto['nombre']); ?></h5>
                                     <p class="card-text text-white">$<?php echo htmlspecialchars(number_format($producto['precio'], 2)); ?></p>
                                     <p class="card-text text-white small"><?php echo htmlspecialchars($producto['descripcion']); ?></p>
@@ -181,11 +138,10 @@ if ($result->num_rows > 0) {
                                         </button>                        
                                     </div>    
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Modal de confirmación -->
-                        <div class="modal fade" id="confirmDeleteModal<?php echo $producto['id_producto']; ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    </div>
+                </div>
+                <!-- Modal de confirmación -->
+                <div class="modal fade" id="confirmDeleteModal<?php echo $producto['id_producto']; ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-header">
@@ -205,18 +161,13 @@ if ($result->num_rows > 0) {
                                 </div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-
-                <?php else: ?>
-                    <p class="text-center">No hay productos disponibles actualmente.</p>
-                <?php endif; ?>
-            </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p class="text-center">No se encontraron productos que coincidan con tu búsqueda.</p>
+            <?php endif; ?>
         </div>
-    </section>
+    </div>
     
-</div>
-
-    <!-- Footer -->
     <footer>
         <div class="container-fluid">
             <p>&copy; 2024 ESCOMDeals - Todos los derechos reservados.</p>
@@ -224,27 +175,9 @@ if ($result->num_rows > 0) {
             <a href="privacidad.html" class="text-white">Política de Privacidad</a>
         </div>
     </footer>
-    <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const eliminarBotones = document.querySelectorAll('[data-bs-toggle="modal"]');
-    eliminarBotones.forEach(function (boton) {
-        boton.addEventListener('click', function () {
-            const productoId = this.getAttribute('data-id');
-            const productoNombre = this.getAttribute('data-nombre');
-            const modal = document.querySelector(`#confirmDeleteModal${productoId}`);
-            const formulario = modal.querySelector('form');
-            formulario.querySelector('#productoId').value = productoId;  // Rellenamos el campo oculto con el id del producto
-        });
-    });
-});
-
-
-</script>
-
-
-    <!-- Scripts -->
+    
     <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="./../../js/main.js"></script>
+    <script src="../../js/main.js"></script>
 </body>
 </html>

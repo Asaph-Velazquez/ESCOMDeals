@@ -24,23 +24,28 @@ if ($conn->connect_error) {
 if (isset($_POST['id_producto'])) {
     $id_producto = $_POST['id_producto'];
 
-    // Consulta para eliminar el producto
-    $sql = "DELETE FROM producto WHERE id_producto = ?";
+    // Eliminar filas relacionadas en 'horario'
+    $sql_horario = "DELETE FROM horario WHERE id_producto = ?";
+    if ($stmt_horario = $conn->prepare($sql_horario)) {
+        $stmt_horario->bind_param("i", $id_producto);
+        $stmt_horario->execute();
+        $stmt_horario->close();
+    }
 
-    if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param("i", $id_producto); // Vincula el parámetro
-        if ($stmt->execute()) {
-            // Redirigir a la ventana anterior
+    // Eliminar el producto
+    $sql_producto = "DELETE FROM producto WHERE id_producto = ?";
+    if ($stmt_producto = $conn->prepare($sql_producto)) {
+        $stmt_producto->bind_param("i", $id_producto);
+        if ($stmt_producto->execute()) {
             header("Location: " . $_SERVER['HTTP_REFERER']);
             exit();
         } else {
             echo "Error al eliminar el producto.";
         }
-        $stmt->close();
-    } else {
-        echo "Error en la consulta.";
+        $stmt_producto->close();
     }
-} else {
+}
+ else {
     echo "No se ha proporcionado un ID de producto.";
 }
 
